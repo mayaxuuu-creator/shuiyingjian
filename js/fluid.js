@@ -487,7 +487,12 @@ window.FLUID = (function () {
 
   canvas.addEventListener('pointerdown', e => {
     canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
-    updatePointerDownData(pointers[0], e.pointerId, e.offsetX * (canvas.width / canvas.clientWidth), e.offsetY * (canvas.height / canvas.clientHeight));
+    const posX = e.offsetX * (canvas.width / canvas.clientWidth);
+    const posY = e.offsetY * (canvas.height / canvas.clientHeight);
+    updatePointerDownData(pointers[0], e.pointerId, posX, posY);
+    // 点击滴墨：落笔即注一滴（快速点按不会触发拖拽/长按两条路径，必须在这里落墨）
+    splat(posX / canvas.width, posY / canvas.height, 0, 0,
+      [currentInk[0], currentInk[1], currentInk[2]], 1.0);
     document.dispatchEvent(new CustomEvent('pool-touch'));
   });
   canvas.addEventListener('pointermove', e => {

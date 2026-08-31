@@ -37,3 +37,10 @@
 ## D8 · 分享文案内嵌三模板（2026-08-31）
 - 三套口吻（晒图/读心/讲故事）随机出稿 + 换一版 + 一键复制
 - 文案带编号、心相、诗句、话题标签，直接可发小红书
+
+## D9 · 小红书小工具副本的容器适配（2026-08-31）
+- 依据：官方打包 skill minitool-zip-builder v1.2.0（三份规范：zip-artifact-spec / device-capabilities / cross-platform-h5）
+- 副本位置：`~/学习/AI/Projects/shuiyingjian-xhs/`；产物：`水影笺_小红书_v1.0.zip`（24.8KB，index.html 在根）
+- 容器禁剪贴板 → 「复制文案」改为可选文字+手动复制引导；禁 a[download] 下载 → 「保存笺纸」改为「截图保存」toast
+- dvh 带 vh 兜底、backdrop-filter 补 -webkit-、viewport 补 maximum-scale=1.0、资源引用全加 ./
+- 版本锁定：主仓 tag v1.0；副本与主仓功能一致，仅容器适配差异

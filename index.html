@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#101614">
+<meta property="og:title" content="水影笺 · 把千里江山搅进水里">
+<meta property="og:description" content="以水为纸，滴墨吹引，覆纸成笺——唐人流沙笺数字拓印">
+<title>水影笺 · 把千里江山搅进水里</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%239e2a20'/%3E%3Ctext x='32' y='42' font-size='30' text-anchor='middle' fill='%23f6efdc' font-family='serif'%3E影%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+<div id="stage">
+  <header id="topbar">
+    <div class="brand">
+      <span class="brand-mark">水影笺</span>
+      <span class="brand-sub">唐 · 流沙笺数字拓印</span>
+    </div>
+    <div class="theme-switch" id="themeSwitch">
+      <button class="theme-btn active" data-theme="qinglv">青绿</button>
+      <button class="theme-btn" data-theme="shui">松烟</button>
+    </div>
+  </header>
+
+  <main id="poolWrap">
+    <canvas id="pool"></canvas>
+    <div id="hint">点一点 · 滴墨　　划一划 · 吹墨</div>
+  </main>
+
+  <footer id="dock">
+    <div id="palette"></div>
+    <div id="tools">
+      <div class="tool-group">
+        <button class="tool-btn" data-pattern="yun">云纹</button>
+        <button class="tool-btn" data-pattern="lang">浪纹</button>
+        <button class="tool-btn" data-pattern="xuan">漩涡</button>
+      </div>
+      <div class="tool-group">
+        <button class="tool-btn ghost" id="clearBtn">清池</button>
+        <button class="cta" id="printBtn">覆纸拓印</button>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<div id="printOverlay" class="hidden">
+  <div id="sheetCaption"></div>
+  <div id="paperSheet"><canvas id="paperCanvas"></canvas></div>
+  <div id="resultBar" class="hidden">
+    <button class="tool-btn ghost" id="againBtn">再拓一张</button>
+    <button class="cta" id="saveBtn">保存笺纸</button>
+  </div>
+</div>
+
+<script src="js/palette.js"></script>
+<script src="js/fluid.js"></script>
+<script src="js/patterns.js"></script>
+<script src="js/rubbing.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

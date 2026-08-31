@@ -27,6 +27,7 @@ window.RUBBING = (function () {
     const pixels = opts.pixels;               // { data, width, height }
     const number = opts.number;
     const poem = POEMS[number % POEMS.length];
+    const mind = opts.mind;                   // { name, line } 心相读墨
 
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;
@@ -136,10 +137,36 @@ window.RUBBING = (function () {
     ctx.fillStyle = 'rgba(46, 42, 36, 0.62)';
     ctx.fillText(poem.poet, cols === 2 ? colXs[1] : colXs[0], sy + 52 + maxChars * 42 + 2);
 
-    // 6. 朱砂印（右下，程序做残缺边）
+    // 6. 心相签（左上小竖签：墨纹读出的名字）
+    if (mind && mind.name) {
+      const nw = 58;
+      const nh = 40 + mind.name.length * 30 + 16;
+      const nx = 64, ny = 128;
+      ctx.fillStyle = 'rgba(246, 239, 220, 0.88)';
+      ctx.strokeStyle = 'rgba(74, 64, 52, 0.4)';
+      roundRect(ctx, nx, ny, nw, nh, 4);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = 'rgba(165, 50, 42, 0.85)';
+      ctx.beginPath();
+      ctx.arc(nx + nw / 2, ny + 14, 2.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '13px ' + SERIF;
+      ctx.fillStyle = 'rgba(46, 42, 36, 0.55)';
+      ctx.fillText('心相', nx + nw / 2, ny + 32);
+      ctx.font = '600 22px ' + SERIF;
+      ctx.fillStyle = '#2e2a24';
+      const mchars = mind.name.split('');
+      mchars.forEach((ch, k) => {
+        ctx.fillText(ch, nx + nw / 2, ny + 56 + k * 30);
+      });
+    }
+
+    // 7. 朱砂印（右下，程序做残缺边）
     drawSeal(ctx, W - 132, H - 208, 86);
 
-    // 7. 编号与年款（左下）
+    // 8. 编号与年款（左下）
     ctx.textAlign = 'left';
     ctx.font = '20px ' + SERIF;
     ctx.fillStyle = 'rgba(74, 64, 52, 0.8)';
@@ -148,7 +175,7 @@ window.RUBBING = (function () {
     ctx.fillStyle = 'rgba(74, 64, 52, 0.55)';
     ctx.fillText('丙午年 · 全球仅此一张', 48, H - 48);
 
-    // 8. 细框 + 暗角
+    // 9. 细框 + 暗角
     ctx.strokeStyle = 'rgba(74, 64, 52, 0.5)';
     ctx.lineWidth = 1;
     ctx.strokeRect(24.5, 24.5, W - 49, H - 49);

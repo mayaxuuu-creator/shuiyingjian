@@ -30,7 +30,7 @@
     return `rgb(${f(rgb[0])}, ${f(rgb[1])}, ${f(rgb[2])})`;
   }
   function currentInk() {
-    return state.palette.colors[state.colorIndex].rgb;
+    return state.palette.colors[state.colorIndex];   // 含 rgb 与 gain（松烟五墨增益）
   }
   function buildPalette() {
     paletteBox.innerHTML = '';
@@ -43,11 +43,12 @@
         state.colorIndex = i;
         paletteBox.querySelectorAll('.swatch').forEach(el => el.classList.remove('active'));
         btn.classList.add('active');
-        FLUID.setInk(c.rgb);
+        FLUID.setInk(c.rgb, c.gain);
       });
       paletteBox.appendChild(btn);
     });
-    FLUID.setInk(currentInk());
+    const cur = currentInk();
+    FLUID.setInk(cur.rgb, cur.gain);
   }
 
   function setTheme(palette) {
@@ -175,7 +176,7 @@
       document.querySelector('[data-theme="' + themeKey + '"]').click();
       document.querySelectorAll('.swatch')[cIdx].click();
       FLUID.clear();
-      FLUID.queue(PATTERNS.make(patName, PALETTES[themeKey], PALETTES[themeKey].colors[cIdx].rgb));
+      FLUID.queue(PATTERNS.make(patName, PALETTES[themeKey], PALETTES[themeKey].colors[cIdx]));
       if (demo.includes('print')) setTimeout(() => document.getElementById('printBtn').click(), 2800);
     }, 450);
   } else {

@@ -38,9 +38,11 @@
 - 三套口吻（晒图/读心/讲故事）随机出稿 + 换一版 + 一键复制
 - 文案带编号、心相、诗句、话题标签，直接可发小红书
 
-## D9 · 小红书小工具副本的容器适配（2026-08-31）
+## D9 · 小红书小工具副本的容器适配（2026-08-31，v1.2 更新）
 - 依据：官方打包 skill minitool-zip-builder v1.2.0（三份规范：zip-artifact-spec / device-capabilities / cross-platform-h5）
-- 副本位置：`~/学习/AI/Projects/shuiyingjian-xhs/`；产物：`水影笺_小红书_v1.0.zip`（24.8KB，index.html 在根）
-- 容器禁剪贴板 → 「复制文案」改为可选文字+手动复制引导；禁 a[download] 下载 → 「保存笺纸」改为「截图保存」toast
-- dvh 带 vh 兜底、backdrop-filter 补 -webkit-、viewport 补 maximum-scale=1.0、资源引用全加 ./
-- 版本锁定：主仓 tag v1.0；副本与主仓功能一致，仅容器适配差异
+- 副本位置：`~/学习/AI/Projects/shuiyingjian-xhs/`；产物：`水影笺_小红书_v1.2.zip`（26KB，index.html 在根）
+- 容器禁剪贴板 → 「复制文案」改为可选文字+手动复制引导
+- 保存策略（v1.2 修订，实测为准）：官方文档称禁 a[download]，但容器实测同类工具可点击保存 → 恢复 blob 下载直存，截图降为兜底提示；以真机提审预览为准
+- v1.1 布局重排：撤自绘顶栏（顶部留 88px+安全区避让容器返回/分享胶囊）；主题切换改池沿垂签；砚池四角描金角饰/择墨标签/竖排水印等 CSS 程序装饰
+- 教训（v1.2）：重排 HTML 改类名（theme-btn→theme-tab）后必须同步全量 grep JS 里的旧类名；冒烟测试要点真实交互路径，不能只走演示钩子
+- 版本锁定：主仓 tag v1.0

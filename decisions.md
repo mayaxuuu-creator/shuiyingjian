@@ -54,3 +54,4 @@
 - 装饰：背景加绫裱斜织纹理（CSS 程序）；「覆纸拓印」CTA 从胶囊改朱砂方章（拓印=盖印）
 - 资源引用全部带 ?v= 版本号破缓存（本地启发式缓存踩过两次坑）
 - zip：`水影笺_小红书_v1.3.zip`（449KB，含字体，仍在官方 2MB 推荐线内）
+- 副本独立仓库：github.com/mayaxuuu-creator/shuiyingjian-xhs；线上：shuiyingjian-xhs.vercel.app（手机实测用；vercel.app 大陆直连限制见 D2）

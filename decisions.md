@@ -55,3 +55,11 @@
 - 资源引用全部带 ?v= 版本号破缓存（本地启发式缓存踩过两次坑）
 - zip：`水影笺_小红书_v1.3.zip`（449KB，含字体，仍在官方 2MB 推荐线内）
 - 副本独立仓库：github.com/mayaxuuu-creator/shuiyingjian-xhs；线上：shuiyingjian-xhs.vercel.app（手机实测用；vercel.app 大陆直连限制见 D2）
+
+## D11 · v1.4 松烟五墨分层修复（2026-09-01，Maya 反馈"几个墨色调出来差不多"）
+- 根因：注墨归一化抹掉了五墨的亮度差（焦浓重淡清本来只差亮度），全变同一种淡蓝白烟
+- 修复：调色板每色显式 `gain` 注墨增益（焦 1.0 / 浓 0.8 / 重 0.6 / 淡 0.42 / 清 0.26），setInk 与纹样链路保留增益
+- 青绿盘不受影响（色相分层，无 gain 默认 1.0）；松烟 0.55 防过曝 damp 由 gain 校准取代
+- 新增 `?demo=shui-rank` 五墨分层自检钩子（两版通用）
+- 打包教训：git init 后打 zip 必须排除 .git/.vercel/.gitignore/README（官方仅允许 html/css/js/图片/字体/json）
+- zip：`水影笺_小红书_v1.4.zip`（449KB）

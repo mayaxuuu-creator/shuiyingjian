@@ -34,4 +34,6 @@ python3 -m http.server 8137
 
 ## 线上
 
-Vercel：`shuiyingjian.vercel.app`（大陆直连或需自定义域名，见 decisions.md D2）
+- **Cloudflare Pages（主推，大陆可达）**：`shuiyingjian.pages.dev`
+- Vercel 镜像：`shuiyingjian.vercel.app`（大陆直连受限）
+- 更新部署（Cloudflare）：组干净目录后 `npx wrangler pages deploy <目录> --project-name=shuiyingjian --branch=main`

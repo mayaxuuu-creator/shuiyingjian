@@ -9,7 +9,8 @@
 
 ## D2 · 纯静态零后端（2026-08-31）
 - 无登录、无服务器状态，编号/笺文本地随机生成
-- 部署 Vercel；⚠️ vercel.app 大陆直连可能被墙（童年游戏厅项目已踩过），正式传播前考虑绑自定义域名
+- 部署：Vercel（shuiyingjian.vercel.app，大陆直连受限）+ **Cloudflare Pages（2026-09-01 起，shuiyingjian.pages.dev，大陆可达，主推链接）**
+- Cloudflare 部署方式：`npx wrangler pages project create shuiyingjian --production-branch=main` → 组干净目录（index.html+css+js）→ `wrangler pages deploy <目录> --project-name=shuiyingjian --branch=main`；更新 = 重跑 deploy
 
 ## D3 · 零素材，全程序化生成（2026-08-31）
 - 宣纸纹理/洒金/印章/纤维噪点全部 Canvas 程序绘制，不引外部图片

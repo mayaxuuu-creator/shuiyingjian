@@ -279,8 +279,8 @@ window.FLUID = (function () {
 
   /* 显示 shader：两种模式
      uPigment=0 → 墨池：颜料在深水中（加色发光感）
-     uPigment=1 → 拓印：颜料吸光模型（减色），补色相遇变深、粉紫消失，
-                  青/绿/朱砂/藤黄落纸即矿物色 */
+     uPigment=1 → 拓印：色相保持模型（色相看比例、深浅看浓度），
+                  蓝+绿相叠出深青（不糊成黑），补色相遇变深灰（不出粉紫） */
   const displayShader = compileShader(gl.FRAGMENT_SHADER, `
     precision highp float; precision highp sampler2D;
     varying vec2 vUv;
@@ -292,14 +292,14 @@ window.FLUID = (function () {
     uniform float uVignette;
     uniform float uFiber;
     uniform float uPigment;
+    uniform float uMoon;
+    uniform float uAspect;
     float hash (vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     void main () {
       vec3 dye = texture2D(uTexture, vUv).rgb;
       vec3 col;
       float density;
       if (uPigment > 0.5) {
-        // 拓印模型：色相看各通道比例，深浅看总浓度
-        // —— 蓝+绿相叠出深青（不糊成黑），蓝+朱砂相叠出深灰（不出粉紫）
         float total = dye.r + dye.g + dye.b;
         vec3 chroma = dye / max(total, 1e-4);
         float brightness = 0.22 + 0.78 * exp(-total * 1.1);
@@ -317,6 +317,14 @@ window.FLUID = (function () {
       paper += (hash(floor(vUv * vec2(640.0))) - 0.5) * uFiber;
       float sh = sin(vUv.x * 44.0 + uTime * 0.6) * cos(vUv.y * 36.0 - uTime * 0.45);
       paper += sh * 0.006 * uShimmer;
+      if (uMoon > 0.5) {
+        // 月轮：磁盘面 + 暖金光晕，画在纸底（墨层之下——墨卷过月，云破月来）
+        vec2 mp = vec2((vUv.x - 0.70) * uAspect, vUv.y - 0.72);
+        float d = length(mp);
+        float disk = smoothstep(0.085, 0.074, d) * 0.40;
+        float halo = exp(-d * 6.5) * 0.20;
+        paper += vec3(1.0, 0.92, 0.72) * ((disk + halo) * uMoon);
+      }
       vec3 ink = uPigment > 0.5 ? col : col + paper * 0.08;
       vec3 outc = mix(paper, ink, coverage);
       vec2 c = vUv - 0.5;
@@ -407,9 +415,10 @@ window.FLUID = (function () {
   }
 
   // ---------- 主题 ----------
-  const theme = { key: 'qinglv', pool: [0.05, 0.085, 0.09], gain: 1.0, shimmer: 1.0, curl: config.CURL, fiber: 0.028 };
+  const theme = { key: 'qinglv', moon: 0, pool: [0.05, 0.085, 0.09], gain: 1.0, shimmer: 1.0, curl: config.CURL, fiber: 0.028 };
   function setTheme(palette) {
     theme.key = palette.key;
+    theme.moon = palette.moon || 0;
     theme.pool = palette.pool;
     theme.shimmer = palette.shimmer;
     theme.curl = palette.key === 'shui' ? 6 : 9;
@@ -611,6 +620,8 @@ window.FLUID = (function () {
     gl.uniform1f(displayProgram.uniforms.uVignette, vignette !== undefined ? vignette : (paperOverride ? 0.0 : 0.25));
     gl.uniform1f(displayProgram.uniforms.uFiber, paperOverride ? 0.006 : theme.fiber);
     gl.uniform1f(displayProgram.uniforms.uPigment, paperOverride ? 1.0 : 0.0);
+    gl.uniform1f(displayProgram.uniforms.uMoon, theme.moon || 0.0);
+    gl.uniform1f(displayProgram.uniforms.uAspect, aspectRatio);
     blit(target);
   }
 

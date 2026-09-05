@@ -1,39 +1,48 @@
 # 水影笺 · 把千里江山搅进水里
 
 唐人流沙笺数字拓印 H5。以水为纸，滴墨吹引，覆纸成笺。
-
-![技术](https://img.shields.io/badge/WebGL-Navier--Stokes-1d2a26) ![协议](https://img.shields.io/badge/%E7%B4%A0%E6%9D%90-%E5%85%A8%E7%A8%8B%E5%BA%8F%E7%94%9F%E6%88%90-a5382b)
+本仓库为统一源码库：**网页版（本目录）与小红书容器版完全同源**，容器适配细节见下方「双形态」。
 
 ## 玩法
 
-1. **滴墨**：点一下池面，落一滴矿彩
-2. **吹墨**：划动手指，引水走墨；按住不动，墨从笔尖渗出
-3. **纹样保底**：云纹 / 浪纹 / 漩涡，一键出好图
-4. **覆纸拓印**：颜料沉淀上纸，得一张 720×1040 的流沙笺——宣纸纹理、洒金、朱砂印、唐诗笺文、全球唯一编号，可直接保存发小红书
+1. **滴墨**：点一下池面，落一滴矿彩；**吹墨**：划动引水走墨；**按住**：墨从笔尖渗出
+2. **纹样保底**：云纹 / 浪纹 / 漩涡 / 桂雨——以当前选中色为主调 + 随机辅色，一键出好图
+3. **覆纸拓印**：成笺（题签+心相签+署名印+编号）/ 素笺（纯图）两种模式，720×1040 PNG
+4. **陈列室**：拓完收藏进本地展墙，可回看/再保存/发笔记
+5. **发笔记**（容器内）：成笺图 + 自带「水影笺」的文案一键调起发布
 
-双墨盘：**青绿**（千里江山矿彩，主打）× **松烟**（水墨烟雾）。
+## 五套策展套装
 
-演示钩子：`?demo=shui-xuan-print`（自动：切松烟 → 入漩涡 → 覆纸）。
+青绿（千里江山）· 松烟（文人水墨）· 敦煌（盛唐壁画）· 汝窑（雨过天青）· **月夜磁青（中秋限定）**
+——策展套装制：不做自由组合器，所有组合人工调校成套上线（质量红线，见 decisions.md D14）。
+
+## 双形态
+
+| 形态 | 差异 |
+|---|---|
+| 网页版 | 本目录直接部署；保存=浏览器下载 |
+| 小红书容器版 | 同源文件；保存=JSBridge `saveImageToPhotosAlbum` 直存相册；发笔记=`postNote`（官方 1.4.0 JSBridge 规范） |
+
+**同源约定**：`index.html / css/ / js/ / fonts/` 两仓保持 1:1，改任一侧必须同步另一侧（git remote 互引 `git fetch xhs main && git checkout xhs/main -- .`）。
 
 ## 技术
 
-- 自研 WebGL 流体引擎：Navier-Stokes 稳定流体 + 涡量约束，8-pass 管线（管线参照 [Pavel Dobryakov/WebGL-Fluid-Simulation](https://github.com/PavelDoGreat/WebGL-Fluid-Simulation)，MIT）
-- 墨池深色水底渲染（加色）/ 拓印暖宣纸渲染（色相保持模型：色相看比例、深浅看浓度，补色相叠变深不发粉）
-- 拓印成笺：Canvas 2D 程序绘制——宣纸纤维、洒金、题签竖排唐诗（公版）、残缺边朱砂印、编号年款
-- 纯静态零依赖零素材，无构建；移动端自适应（染料 640 / 物理 112 / 压力迭代 20）
-- WebGL2 优先，WebGL1 + OES_texture_half_float 兜底；上下文丢失自动恢复
+- 自研 WebGL 流体引擎：Navier-Stokes 稳定流体 + 涡量约束（管线参照 Pavel Dobryakov/WebGL-Fluid-Simulation，MIT）
+- 墨池深色水底（加色）/ 拓印色相保持模型（补色相叠变深不发粉）；深色材质支持 inkGain/inkLift 月光提亮
+- 内置霞鹜文楷子集（fonts/，OFL-1.1）；素材全部程序化生成
+- 小红书容器打包：`水影笺_小红书_vX.X.zip`（index.html 在根，排除非合规文件）
 
 ## 本地运行
 
 ```bash
-python3 -m http.server 8137
-# 打开 http://localhost:8137
+python3 serve.py 8138 .    # 带 no-cache 头，改码刷新即见
 ```
-
-（需 http:// 或 https://，直接双击 file:// 也可以，脚本均为经典加载不依赖模块。）
 
 ## 线上
 
 - **Cloudflare Pages（主推，大陆可达）**：`shuiyingjian.pages.dev`
 - Vercel 镜像：`shuiyingjian.vercel.app`（大陆直连受限）
-- 更新部署（Cloudflare）：组干净目录后 `npx wrangler pages deploy <目录> --project-name=shuiyingjian --branch=main`
+
+## 决策与历史
+
+见 `decisions.md`（D1–D14：青绿路线/策展套装/JSBridge 保存/月夜磁青等全部关键决策）。

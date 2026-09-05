@@ -1,38 +1,23 @@
-# 水影笺 · 项目档案
+# 水影笺 · 小红书小工具版 — Agent 规则
 
 ## 定位
-唐人流沙笺数字拓印 H5。以水为纸，滴墨吹引，覆纸成笺。
-对标项目：浮生扇影（漆扇）。差异化 = 千里江山青绿配色 + 拓印成笺的"作品感"。
-目标场景：小红书国风赛（9/8 截止）+ 独立传播小工具。
+主仓 [shuiyingjian](https://github.com/mayaxuuu-creator/shuiyingjian) 的小红书容器适配版：离线 H5，打包 zip 上传 Builder Hub 上架。当前 v1.5 已提审。
 
-## 爆款三件套（本项目的灵魂，动代码前先读）
-1. **纹样保底**：云纹/浪纹/漩涡三键一键出好图——主调=用户选中色+随机辅色（D6）
-2. **成笺闭环**：覆纸拓印 → 宣纸+洒金+朱砂印章+唐诗笺文+编号（"全球仅此一张"）→ 心相签 → 保存 PNG
-3. **心相读墨+分享**：墨纹读出「心相」（规则引擎，D7）；三套小红书文案模板一键复制（D8）；松烟水墨=二刷理由
+## 怎么跑
+```bash
+python3 /tmp/nocache_server.py 8138 .   # 任意静态服务器即可，必须带 no-cache 头（否则改码看不到变化）
+```
 
-## 技术要点
-- 纯静态零依赖：无构建、无后端、无外部素材（版权安全策略）
-- 流体引擎：Navier-Stokes 稳定流体 + 涡量约束，自研实现（参考 Pavel Dobryakov/WebGL-Fluid-Simulation，MIT，16601 stars，协议已核实）
-- 关键差异 vs Pavel：墨池深色底（艳色/淡墨都好看，容错率核心）→ 拓印时色相保持映射到暖宣纸底（补色相叠变深不发粉）
-- 素材全部程序化生成：宣纸纹理/洒金/印章/笺文（唐诗人名句，公版）
-- 字体：系统衬线栈（Songti SC / Noto Serif CJK），不引网络字体
-- URL 演示钩子：`?demo=shui-xuan-print` 自动走完整流程
+## 技术栈与约束
+- 纯静态 HTML/CSS/JS，零依赖零构建；容器 CSP 禁内联脚本/行内事件，全外置 + addEventListener
+- 离线合规（官方 minitool-zip-builder **1.4.0** 规范）：禁网络请求/剪贴板/a[download]（容器会静默吞掉）；保存必须走 JSBridge `window.xhs.miniTool.saveImageToPhotosAlbum({ filePath: base64 dataUri })`，复制走可选文字
+- 内置霞鹜文楷子集（fonts/，OFL-1.1，OFL.json 随包）；字体子集重建脚本 /tmp/wenkai/build_font_subset.py（临时，含构建思路）
 
-## 文件地图
-- `index.html` / `css/main.css` — 界面与覆纸动画
-- `js/fluid.js` — WebGL 流体引擎（8-pass 管线 + 拓印像素导出）
-- `js/palette.js` — 青/烟双墨盘定义
-- `js/patterns.js` — 纹样保底（主调+随机辅色的墨序编排）
-- `js/rubbing.js` — 成笺渲染（Canvas 2D：纸/金/印/笺文/心相签/编号）
-- `js/mind.js` — 心相读墨规则引擎 + 分享文案模板
-- `js/main.js` — 流程状态机
+## 目录与同源约定（最重要）
+- `js/fluid.js`、`palette.js`、`patterns.js`、`rubbing.js`、`mind.js` 与主仓同源——**改任一侧必须手动同步另一侧**，仅 `main.js`/`index.html`/`css` 允许两边不同（容器适配差异）
+- `index.html` 必须在打包 zip 根目录；打包排除 .git/.vercel/.gitignore/README.md
 
-## 验收标准
-1. 桌面 60fps，手机可玩（染料 512/640、物理 112 自适应）
-2. 青绿盘随便搅不出现荧光彩虹色；按三个纹样键各能一键出"想保存"的图
-3. 成笺 720×1040 PNG，宣纸质感 + 印章 + 笺文 + 编号齐全
-4. 覆纸动画 1.2s 有"仪式感"，是过程视频的高潮帧
-
-## 协作
-- K老师（Kimi）方案书：`~/Downloads/水影笺_技术方案书_v1.0.md` + `~/Downloads/shuizhijian_shader_improvement.md`
-- 配色决策变更记录在 `decisions.md`，已定不翻案
+## 当前状态与下一步
+- v1.5 已提审（名称：水影笺 / Slogan：把千里江山搅进水里 / 图标：主仓 Projects 根目录 水影笺_icon_512.png）
+- 待审期间不动 zip 内容；上线后记录数据复盘
+- 演示/自检钩子：?demo=shui-rank（五墨分层）、?demo=qinglv-lang-print（全流程）

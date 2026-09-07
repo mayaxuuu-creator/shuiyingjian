@@ -120,6 +120,7 @@
       sealName: state.sealName,
       material: state.palette.material,
       suite: state.palette.key,
+      paper: state.palette.paper || null,   // 套装声明的纸底色（汝窑天青 #A8C4C0 走这里）
       paperImg: state.palette.paperImg || null,
       texMode: state.texMode,
       pattern: state.palette.material === 'ciqing' ? state.lastPattern : '',

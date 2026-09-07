@@ -506,6 +506,13 @@ body {
   padding: 6px 16px;
   cursor: pointer;
   transition: all 0.25s;
+  /* 文楷字形在默认行高下视觉偏下：flex 居中 + line-height:1，字形框即按钮框 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding-top: 7px;
+  padding-bottom: 5px;
 }
 #modeSeg button.active {
   background: var(--paper);

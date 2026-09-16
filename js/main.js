@@ -1,5 +1,5 @@
-/* 水影笺 · 小红书小工具版 主流程（v3.6）
-   玩法：滴墨/吹墨/按住渗墨 → 纹样保底（选中色主调+随机辅色）
+/* 水影笺 · 小红书小工具版 主流程（v3.7）
+   玩法：滴墨/吹墨/按住渗墨 → 纹样保底（选中色主调+辅色）
    → 覆纸拓印（成笺/素笺）→ 心相读墨+配诗 → 保存相册 / 发笔记 / 收入长物斋 */
 
 (function () {
@@ -25,8 +25,7 @@
     colorIndex: PALETTES.qinglv.defaultIndex,
     materialName: '',      // 拓印完成后才点选，默认素拓
     carrier: 'sheet',      // 拓印完成的成器形态
-    stackCount: 0,         // 当前墨池中的纹样叠印层数
-    freedom: { accentName: 'random', water: 'normal', ink: 'normal', point: 'normal' },
+    freedom: { accentName: 'random' },
     number: 0,
     mind: null,
     poem: null,
@@ -131,17 +130,10 @@
       });
       accentBox.appendChild(btn);
     });
-    document.querySelectorAll('[data-freedom]').forEach(group => {
-      const key = group.dataset.freedom;
-      group.querySelectorAll('button').forEach(btn =>
-        btn.classList.toggle('active', btn.dataset.value === state.freedom[key]));
-    });
-    $('#stackCount').textContent = '叠印 ' + state.stackCount + '/3';
   }
 
   function resetFreedom() {
-    state.freedom = { accentName: 'random', water: 'normal', ink: 'normal', point: 'normal' };
-    state.stackCount = 0;
+    state.freedom = { accentName: 'random' };
     syncFreedomUI();
   }
 
@@ -181,28 +173,14 @@
   // ---------- 纹样 / 清池 ----------
   document.querySelectorAll('[data-pattern]').forEach(btn => {
     btn.addEventListener('click', () => {
-      if (state.stackCount >= 3) {
-        showToast('至多三层叠印 · 清池后再起纹样');
-        return;
-      }
       state.lastPattern = btn.dataset.pattern;
-      state.stackCount += 1;
       syncFreedomUI();
       FLUID.queue(PATTERNS.make(btn.dataset.pattern, state.palette, currentInk(), state.freedom));
       dismissHint();
     });
   });
   $('#clearBtn').addEventListener('click', () => {
-    state.stackCount = 0;
-    syncFreedomUI();
     FLUID.clear();
-  });
-
-  document.querySelectorAll('[data-freedom] button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.freedom[btn.closest('[data-freedom]').dataset.freedom] = btn.dataset.value;
-      syncFreedomUI();
-    });
   });
 
   // ---------- 覆纸拓印 + 心相读墨 ----------
@@ -252,7 +230,7 @@
       pattern: state.palette.material === 'ciqing' ? state.lastPattern : '',
     });
     const carried = RUBBING.makeCarrier(sheet, state.carrier);
-    RUBBING.applyAuxiliary(carried, currentMaterial());
+    RUBBING.applyAuxiliary(carried, currentMaterial(), state.carrier);
     paperCanvas.width = RUBBING.W;
     paperCanvas.height = RUBBING.H;
     paperCanvas.getContext('2d').drawImage(carried, 0, 0);

@@ -1,4 +1,4 @@
-/* 水影笺 · 纹样保底（v3.6 受控自由度）
+/* 水影笺 · 纹样保底（v3.7 辅色制）
    一键编排的"墨序"：位置/时机/力度预设，保证出图下限。
    配色规则（Maya 定）：主调 = 用户当前选中色，辅色 = 每次随机另择一款，
    点睛固定（金泥/朱砂）——构图骨架不变，每次点击换装。
@@ -16,16 +16,13 @@ window.PATTERNS = (function () {
     return [rgb[0] / m, rgb[1] / m, rgb[2] / m];
   }
 
-  /* 配色方案：primary=用户选中色；accent=随机辅色（优先从盘内白名单取）；
+  /* 配色方案：primary=用户选中色；accent=随机或锁定辅色（优先从盘内白名单取）；
      点睛按盘取（金泥/暖金/朱砂）。每个角色保留各自的 gain（松烟五墨的浓淡由此生效） */
   function readOptions(options) {
     const o = options || {};
     return {
       accentLock: !!o.accentLock,
       accentName: o.accentName || 'random',
-      water: ['slow', 'normal', 'fast'].includes(o.water) ? o.water : 'normal',
-      ink: ['light', 'normal', 'rich'].includes(o.ink) ? o.ink : 'normal',
-      point: ['low', 'normal', 'high'].includes(o.point) ? o.point : 'normal',
     };
   }
 
@@ -260,62 +257,9 @@ window.PATTERNS = (function () {
   registry.feitian = feitian;
   registry.yuguo = yuguo;
 
-  /* 把受控自由度统一放在事件生成之后：改水势、墨量、点睛，不破坏纹样骨架 */
-  function similarRatio(a, b) {
-    const am = Math.max(a[0], a[1], a[2]) || 1;
-    const bm = Math.max(b[0], b[1], b[2]) || 1;
-    const ax = a[0] / am, ay = a[1] / am, az = a[2] / am;
-    const bx = b[0] / bm, by = b[1] / bm, bz = b[2] / bm;
-    return Math.abs(ax - bx) + Math.abs(ay - by) + Math.abs(az - bz) < 0.16;
-  }
-
   function applyFreedom(events, s) {
-    const o = s.options;
-    const waterScale = o.water === 'slow' ? 0.74 : (o.water === 'fast' ? 1.24 : 1);
-    const delayScale = o.water === 'slow' ? 1.12 : (o.water === 'fast' ? 0.88 : 1);
-    const inkScale = o.ink === 'light' ? 0.82 : (o.ink === 'rich' ? 1.16 : 1);
-    const radiusScale = o.ink === 'light' ? 0.94 : (o.ink === 'rich' ? 1.08 : 1);
-    let out = events.map(ev => ({
-      ...ev,
-      delay: ev.delay * delayScale,
-      dx: ev.dx * waterScale,
-      dy: ev.dy * waterScale,
-      color: [ev.color[0] * inkScale, ev.color[1] * inkScale, ev.color[2] * inkScale],
-      radius: ev.radius * radiusScale,
-    }));
-
-    if (o.point === 'low') {
-      const kept = [];
-      let sparkSeen = 0;
-      out.forEach(ev => {
-        if (similarRatio(ev.color, s.spark.rgb)) {
-          sparkSeen += 1;
-          if (sparkSeen % 2 === 0) return;
-        }
-        kept.push(ev);
-      });
-      out = kept;
-    }
-
-    if (o.point === 'high') {
-      const maxDelay = out.reduce((v, ev) => Math.max(v, ev.delay), 0);
-      const anchors = out.filter((ev, i) => i % Math.max(4, Math.floor(out.length / 8)) === 0);
-      anchors.forEach((anchor, i) => {
-        for (let k = 0; k < 2; k++) {
-          const strength = ink(s, s.spark, 0.30 + Math.random() * 0.08, rnd(0.9, 1.1));
-          out.push({
-            delay: maxDelay + 90 + i * 34 + k * 24,
-            x: anchor.x + rnd(-0.035, 0.035),
-            y: anchor.y + rnd(-0.035, 0.035),
-            dx: rnd(-65, 85) * waterScale,
-            dy: rnd(-55, 45) * waterScale,
-            color: strength,
-            radius: rnd(0.26, 0.44),
-          });
-        }
-      });
-    }
-    return out;
+    // v3.7 只保留辅色选择；水势/墨量/点睛已回归纹样自身的保底编排。
+    return events;
   }
   return {
     make(name, palette, primaryEntry, options) {

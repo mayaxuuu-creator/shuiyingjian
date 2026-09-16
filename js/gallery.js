@@ -108,6 +108,12 @@ window.GALLERY = (function () {
   /* ---------- 展墙视图 ---------- */
   let view = null;
   let onSave = null, onPost = null;   // 由 main.js 注入（桥接保存/发笔记）
+  const SECTIONS = [
+    { key: 'featured', title: '斋 展', note: '上展长物' },
+    { key: 'sheet', title: '笺 架', note: '纸上长物' },
+    { key: 'fan', title: '扇 架', note: '团扇' },
+    { key: 'bookmark', title: '签 架', note: '书签' },
+  ];
 
   function ensureView() {
     if (view) return;
@@ -138,10 +144,19 @@ window.GALLERY = (function () {
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
   function cardHTML(w) {
-    return '<div class="gv-card" data-id="' + w.id + '">' +
-      '<img src="' + w.dataUrl + '" alt="">' +
+    const carrier = w.carrier || 'sheet';
+    return '<div class="gv-card carrier-' + carrier + '" data-id="' + w.id + '">' +
+      '<div class="gv-frame"><img src="' + w.dataUrl + '" alt=""></div>' +
       (w.featured ? '<span class="gv-badge">斋展</span>' : '') +
-      '<div class="gv-tag">第 ' + w.number + ' 号 · ' + esc(w.mind) + '</div></div>';
+      '<div class="gv-tag">第 ' + w.number + ' 号 · ' + esc(w.mind) + '</div>' +
+      '<i class="gv-shelf"></i></div>';
+  }
+
+  function sectionHTML(key, title, note, works) {
+    return '<section class="gv-section carrier-' + key + '">' +
+      '<header class="gv-section-head"><h2>' + title + '</h2><span>' + works.length + ' 件 · ' + note + '</span></header>' +
+      '<div class="gv-grid">' + works.map(cardHTML).join('') + '</div>' +
+      '</section>';
   }
 
   async function render() {
@@ -152,14 +167,30 @@ window.GALLERY = (function () {
     const grid = view.querySelector('.gv-grid');
     const detail = view.querySelector('.gv-detail');
     detail.classList.add('hidden');
+
+    let html = '';
+    if (currentFilter === 'featured') {
+      html = shown.length ? sectionHTML('featured', '斋 展', '上展长物', shown)
+        : '<div class="gv-empty">斋展未立<br>点开一件长物，上展即可</div>';
+    } else {
+      const byCarrier = {
+        sheet: works.filter(w => (w.carrier || 'sheet') === 'sheet' && !w.featured),
+        fan: works.filter(w => (w.carrier || 'sheet') === 'fan' && !w.featured),
+        bookmark: works.filter(w => (w.carrier || 'sheet') === 'bookmark' && !w.featured),
+      };
+      const featured = works.filter(w => w.featured);
+      if (featured.length) html += sectionHTML('featured', '斋 展', '上展长物', featured);
+      SECTIONS.slice(1).forEach(section => {
+        const items = byCarrier[section.key];
+        if (items.length) html += sectionHTML(section.key, section.title, section.note, items);
+      });
+      if (!works.length) html = '<div class="gv-empty">长物斋尚空<br>拓一张喜欢的，收入斋中吧</div>';
+    }
+    grid.innerHTML = html;
     grid.classList.remove('hidden');
-    grid.innerHTML = works.length
-      ? shown.map(cardHTML).join('')
-      : (currentFilter === 'featured'
-        ? '<div class="gv-empty">斋展未立<br>点开一件长物，上展即可</div>'
-        : '<div class="gv-empty">长物斋尚空<br>拓一张喜欢的，收入斋中吧</div>');
     grid.querySelectorAll('.gv-card').forEach(card => {
-      card.addEventListener('click', () => showDetail(shown.find(w => String(w.id) === card.dataset.id)));
+      const find = currentFilter === 'featured' ? shown : works;
+      card.addEventListener('click', () => showDetail(find.find(w => String(w.id) === card.dataset.id)));
     });
   }
 

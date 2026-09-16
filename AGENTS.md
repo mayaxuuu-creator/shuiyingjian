@@ -1,7 +1,7 @@
 # 水影笺 · 小红书小工具版 — Agent 规则
 
 ## 定位
-主仓 [shuiyingjian](https://github.com/mayaxuuu-creator/shuiyingjian) 的小红书容器适配版：离线 H5，打包 zip 上传 Builder Hub 上架。当前开发分支基线 v3.6（`codex/v3.6-longwuzhai`），发布候选 `水影笺_小红书_v1.8.zip`；不要把“已打包”写成“已提审 / 已上线”，也不要提前改动已发布候选包内容。
+主仓 [shuiyingjian](https://github.com/mayaxuuu-creator/shuiyingjian) 的小红书容器适配版：离线 H5，打包 zip 上传 Builder Hub 上架。当前开发分支基线 v3.7（`codex/v3.6-longwuzhai` 增量），发布候选 `水影笺_小红书_v1.8.zip`；不要把“已打包”写成“已提审 / 已上线”，也不要提前改动已发布候选包内容。
 
 ## 怎么跑
 ```bash
@@ -14,7 +14,7 @@ python3 serve.py 8138
 - 内置霞鹜文楷子集（fonts/，OFL-1.1，OFL.json 随包）
 
 ## 目录与同源约定（最重要）
-- `js/fluid.js`、`palette.js`、`patterns.js`、`rubbing.js`、`mind.js` 与主仓同源——**改任一侧必须手动同步另一侧**，仅 `main.js`/`index.html`/`css` 允许两边不同（容器适配差异）
+- `js/fluid.js`、`palette.js`、`patterns.js`、`rubbing.js`、`mind.js`、`gallery.js` 与主仓同源——**改任一侧必须手动同步另一侧**，仅 `main.js`/`index.html`/`css` 允许两边不同（容器适配差异）
 - `index.html` 必须在打包 zip 根目录；打包排除 `.git/.vercel/.codex/.gitignore/README.md/docs` 与历史 zip
 - 每次发版同步升级两仓 `index.html` 资源版本串；漏升会命中旧 GLSL 缓存
 
@@ -26,6 +26,7 @@ python3 serve.py 8138
 ## 验证与下一步
 - zip audit：`python3 .codex/minitool-zip-builder/scripts/audit_artifact.py 水影笺_小红书_v1.8.zip`
 - WebGL 必须看 compile/link 错误；修 shader 后要验证 fallback 和导出双路径
-- v3.6 新入口集中在拓印结果页：成器（笺 / 团扇 / 书签）、辅料、收入长物斋；主池底栏是受控自由度与叠印上限。
+- v3.7 成器入口集中在拓印结果页：团扇为器物化渲染；辅料是拓后器面处理；主池底栏仅保留辅色选择。
+- 长物斋按斋展 / 笺架 / 扇架 / 签架分区，卡片下方有架面；不要把成器图混回同一平面网格。
 - 演示/自检钩子：`?demo=shui-rank`（五墨分层）、`?demo=qinglv-lang-print`（全流程）
-- 下一步：v3.6 分支验收；发布候选 v1.8 提审后等平台结果，不提前改动发布包内容
+- 下一步：v3.7 分支验收；发布候选 v1.8 提审后等平台结果，不提前改动发布包内容

@@ -1,4 +1,4 @@
-/* 水影笺 · 套装定义（v3.6 策展套装制）
+/* 水影笺 · 套装定义（v3.7 器面辅料制）
    每套 = 墨盘 + 池底 + 拓印纸底 + 材质 + 装饰开关，人工调校后成套上线（不做自由组合器）。
    material：拓印载体材质（rubbing.js 按此取装饰配色）
    accentPool：随机辅色白名单；低出片色（灰陶/月白等）只能主动选，不进入随机污染源
@@ -30,7 +30,7 @@ window.PALETTES = {
     accentPool: ['石绿', '胭脂', '金泥'],
     materials: [
       { key: 'stone-dust', name: '石屑', type: 'dust', density: 0.72,
-        swatch: '#5e8f6f', colors: ['rgba(72,109,86,.46)', 'rgba(33,66,58,.34)', 'rgba(236,230,214,.22)'] },
+        swatch: '#5e8f6f', colors: ['rgba(72,109,86,.78)', 'rgba(33,66,58,.64)', 'rgba(236,230,214,.46)'] },
       { key: 'gold-leaf', name: '金箔', type: 'gold', density: 0.58,
         swatch: '#d9b64a', colors: ['#d9b64a', '#b8912f', '#e8ca6b'] },
     ],
@@ -60,9 +60,9 @@ window.PALETTES = {
     accentPool: ['花青', '赭石'],
     materials: [
       { key: 'ink-dust', name: '墨尘', type: 'dust', density: 0.60,
-        swatch: '#41444c', colors: ['rgba(44,47,54,.42)', 'rgba(96,102,112,.28)', 'rgba(235,240,246,.14)'] },
+        swatch: '#41444c', colors: ['rgba(44,47,54,.82)', 'rgba(96,102,112,.68)', 'rgba(235,240,246,.48)'] },
       { key: 'mica', name: '云母', type: 'mica', density: 0.46,
-        swatch: '#e7e9ef', colors: ['rgba(245,248,252,.55)', 'rgba(210,220,235,.34)', 'rgba(180,190,205,.22)'] },
+        swatch: '#e7e9ef', colors: ['rgba(245,248,252,.82)', 'rgba(210,220,235,.58)', 'rgba(180,190,205,.44)'] },
     ],
     defaultIndex: 1,
   },
@@ -122,7 +122,7 @@ window.PALETTES = {
     accentPool: ['黛蓝', '铁线赭', '茶烟', '绛痕'],
     materials: [
       { key: 'mica', name: '云母', type: 'mica', density: 0.42,
-        swatch: '#f0f6f2', colors: ['rgba(245,252,248,.52)', 'rgba(206,228,219,.34)', 'rgba(200,184,136,.28)'] },
+        swatch: '#f0f6f2', colors: ['rgba(245,252,248,.80)', 'rgba(206,228,219,.58)', 'rgba(200,184,136,.48)'] },
     ],
     defaultIndex: 0,
   },
@@ -149,7 +149,7 @@ window.PALETTES = {
     accentPool: ['天青', '暖金', '桂橙', '绛纱'],
     materials: [
       { key: 'star-dust', name: '星屑', type: 'mica', density: 0.52,
-        swatch: '#f2e9d0', colors: ['rgba(242,233,208,.58)', 'rgba(217,185,106,.42)', 'rgba(180,205,240,.30)'] },
+        swatch: '#f2e9d0', colors: ['rgba(242,233,208,.84)', 'rgba(217,185,106,.68)', 'rgba(180,205,240,.54)'] },
     ],
     defaultIndex: 0,
   },

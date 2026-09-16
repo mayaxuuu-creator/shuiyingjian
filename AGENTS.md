@@ -1,7 +1,7 @@
 # 水影笺 · 小红书小工具版 — Agent 规则
 
 ## 定位
-主仓 [shuiyingjian](https://github.com/mayaxuuu-creator/shuiyingjian) 的小红书容器适配版：离线 H5，打包 zip 上传 Builder Hub 上架。当前代码基线 v3.5，发布候选 `水影笺_小红书_v1.8.zip`；不要把“已打包”写成“已提审 / 已上线”。
+主仓 [shuiyingjian](https://github.com/mayaxuuu-creator/shuiyingjian) 的小红书容器适配版：离线 H5，打包 zip 上传 Builder Hub 上架。当前开发分支基线 v3.6（`codex/v3.6-longwuzhai`），发布候选 `水影笺_小红书_v1.8.zip`；不要把“已打包”写成“已提审 / 已上线”，也不要提前改动已发布候选包内容。
 
 ## 怎么跑
 ```bash
@@ -26,5 +26,6 @@ python3 serve.py 8138
 ## 验证与下一步
 - zip audit：`python3 .codex/minitool-zip-builder/scripts/audit_artifact.py 水影笺_小红书_v1.8.zip`
 - WebGL 必须看 compile/link 错误；修 shader 后要验证 fallback 和导出双路径
+- v3.6 新入口集中在拓印结果页：成器（笺 / 团扇 / 书签）、辅料、收入长物斋；主池底栏是受控自由度与叠印上限。
 - 演示/自检钩子：`?demo=shui-rank`（五墨分层）、`?demo=qinglv-lang-print`（全流程）
-- 下一步：v1.8 提交 Builder Hub；提审后等平台结果，不提前改动发布包内容
+- 下一步：v3.6 分支验收；发布候选 v1.8 提审后等平台结果，不提前改动发布包内容

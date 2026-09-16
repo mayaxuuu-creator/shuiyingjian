@@ -1,6 +1,6 @@
-/* 水影笺 · 小红书小工具版 主流程（v2.0）
+/* 水影笺 · 小红书小工具版 主流程（v3.6）
    玩法：滴墨/吹墨/按住渗墨 → 纹样保底（选中色主调+随机辅色）
-   → 覆纸拓印（成笺/素笺）→ 心相读墨+配诗 → 保存相册 / 发笔记 / 收入陈列室 */
+   → 覆纸拓印（成笺/素笺）→ 心相读墨+配诗 → 保存相册 / 发笔记 / 收入长物斋 */
 
 (function () {
   'use strict';
@@ -23,6 +23,10 @@
   const state = {
     palette: PALETTES.qinglv,
     colorIndex: PALETTES.qinglv.defaultIndex,
+    materialName: '',      // 拓印完成后才点选，默认素拓
+    carrier: 'sheet',      // 拓印完成的成器形态
+    stackCount: 0,         // 当前墨池中的纹样叠印层数
+    freedom: { accentName: 'random', water: 'normal', ink: 'normal', point: 'normal' },
     number: 0,
     mind: null,
     poem: null,
@@ -37,6 +41,7 @@
 
   const $ = s => document.querySelector(s);
   const paletteBox = $('#palette');
+  const resultMaterialList = $('#resultMaterialList');
   const hint = $('#hint');
   const overlay = $('#printOverlay');
   const paperCanvas = $('#paperCanvas');
@@ -54,6 +59,9 @@
   }
   function currentInk() {
     return state.palette.colors[state.colorIndex];
+  }
+  function currentMaterial() {
+    return (state.palette.materials || []).find(item => item.name === state.materialName) || null;
   }
   function buildPalette() {
     paletteBox.innerHTML = '';
@@ -74,14 +82,92 @@
     FLUID.setInk(cur.rgb, cur.gain);
   }
 
+  function buildResultMaterials() {
+    resultMaterialList.innerHTML = '';
+    const materials = state.palette.materials || [];
+    const none = document.createElement('button');
+    none.className = 'finish-material' + (!state.materialName ? ' active' : '');
+    none.textContent = '无';
+    none.addEventListener('click', () => selectMaterial(''));
+    resultMaterialList.appendChild(none);
+    materials.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'finish-material' + (state.materialName === item.name ? ' active' : '');
+      btn.title = item.name;
+      btn.setAttribute('aria-label', '拓后辅料 · ' + item.name);
+      btn.style.background = item.swatch;
+      btn.textContent = item.name;
+      btn.addEventListener('click', () => selectMaterial(item.name));
+      resultMaterialList.appendChild(btn);
+    });
+  }
+
+  function selectMaterial(name) {
+    state.materialName = name;
+    resultMaterialList.querySelectorAll('.finish-material').forEach(el =>
+      el.classList.toggle('active', el.textContent === (name || '无')));
+    renderSheet();
+    showToast(name ? '已加辅料 · ' + name : '已回到素拓');
+  }
+
+  function syncFreedomUI() {
+    const accentBox = $('#accentOptions');
+    accentBox.innerHTML = '';
+    const random = document.createElement('button');
+    random.textContent = '随机';
+    random.classList.toggle('active', state.freedom.accentName === 'random');
+    random.addEventListener('click', () => {
+      state.freedom.accentName = 'random';
+      syncFreedomUI();
+    });
+    accentBox.appendChild(random);
+    (state.palette.accentPool || []).forEach(name => {
+      const btn = document.createElement('button');
+      btn.textContent = name;
+      btn.classList.toggle('active', state.freedom.accentName === name);
+      btn.addEventListener('click', () => {
+        state.freedom.accentName = name;
+        syncFreedomUI();
+      });
+      accentBox.appendChild(btn);
+    });
+    document.querySelectorAll('[data-freedom]').forEach(group => {
+      const key = group.dataset.freedom;
+      group.querySelectorAll('button').forEach(btn =>
+        btn.classList.toggle('active', btn.dataset.value === state.freedom[key]));
+    });
+    $('#stackCount').textContent = '叠印 ' + state.stackCount + '/3';
+  }
+
+  function resetFreedom() {
+    state.freedom = { accentName: 'random', water: 'normal', ink: 'normal', point: 'normal' };
+    state.stackCount = 0;
+    syncFreedomUI();
+  }
+
+  function syncCarrierUI() {
+    document.querySelectorAll('#carrierSeg button').forEach(btn =>
+      btn.classList.toggle('active', btn.dataset.carrier === state.carrier));
+  }
+
   function setTheme(palette) {
     state.palette = palette;
     state.colorIndex = palette.defaultIndex;
+    state.materialName = '';
+    state.carrier = 'sheet';
+    resetFreedom();
     FLUID.setTheme(palette);
     FLUID.paperForPrint = palette.paper;
     buildPalette();
+    buildResultMaterials();
     document.body.classList.toggle('theme-shui', palette.key === 'shui');
     document.body.classList.toggle('theme-zhongqiu', palette.key === 'zhongqiu');
+    document.querySelectorAll('[data-only]').forEach(btn => {
+      btn.hidden = btn.dataset.only !== palette.key;
+    });
+    document.querySelectorAll('.theme-tab').forEach(btn => {
+      btn.title = { dunhuang: '晨光敦煌', ruyao: '雨过汝窑' }[palette.key] || palette.desc;
+    });
   }
 
   $('#themeSwitch').addEventListener('click', e => {
@@ -95,16 +181,37 @@
   // ---------- 纹样 / 清池 ----------
   document.querySelectorAll('[data-pattern]').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (state.stackCount >= 3) {
+        showToast('至多三层叠印 · 清池后再起纹样');
+        return;
+      }
       state.lastPattern = btn.dataset.pattern;
-      FLUID.queue(PATTERNS.make(btn.dataset.pattern, state.palette, currentInk()));
+      state.stackCount += 1;
+      syncFreedomUI();
+      FLUID.queue(PATTERNS.make(btn.dataset.pattern, state.palette, currentInk(), state.freedom));
       dismissHint();
     });
   });
-  $('#clearBtn').addEventListener('click', () => FLUID.clear());
+  $('#clearBtn').addEventListener('click', () => {
+    state.stackCount = 0;
+    syncFreedomUI();
+    FLUID.clear();
+  });
+
+  document.querySelectorAll('[data-freedom] button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.freedom[btn.closest('[data-freedom]').dataset.freedom] = btn.dataset.value;
+      syncFreedomUI();
+    });
+  });
 
   // ---------- 覆纸拓印 + 心相读墨 ----------
   $('#printBtn').addEventListener('click', () => {
     state.number = 1000 + Math.floor(Math.random() * 9000);
+    state.materialName = '';
+    state.carrier = 'sheet';
+    buildResultMaterials();
+    syncCarrierUI();
     FLUID.pause();
     const pixels = FLUID.getPixels();
     state.lastPixels = pixels;
@@ -121,7 +228,11 @@
     overlay.classList.remove('hidden');
     void overlay.offsetWidth;   // 强制 reflow，保证过渡动画必触发（不依赖 rAF 存活）
     overlay.classList.add('show');
-    setTimeout(() => { resultBar.classList.remove('hidden'); shareCard.classList.remove('hidden'); }, 1250);
+    setTimeout(() => {
+      resultBar.classList.remove('hidden');
+      $('#finishBar').classList.remove('hidden');
+      shareCard.classList.remove('hidden');
+    }, 1250);
   });
 
   // ---------- 成笺 / 素笺渲染 ----------
@@ -140,9 +251,11 @@
       texMode: state.texMode,
       pattern: state.palette.material === 'ciqing' ? state.lastPattern : '',
     });
+    const carried = RUBBING.makeCarrier(sheet, state.carrier);
+    RUBBING.applyAuxiliary(carried, currentMaterial());
     paperCanvas.width = RUBBING.W;
     paperCanvas.height = RUBBING.H;
-    paperCanvas.getContext('2d').drawImage(sheet, 0, 0);
+    paperCanvas.getContext('2d').drawImage(carried, 0, 0);
   }
 
   document.querySelectorAll('#modeSeg button').forEach(btn => {
@@ -153,6 +266,16 @@
       renderSheet();
       caption.textContent = '第 ' + state.number + ' 号' +
         (state.pure ? ' · 素笺' : ' · 心相「' + state.mind.name + '」');
+    });
+  });
+
+  document.querySelectorAll('#carrierSeg button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!state.lastPixels) return;
+      state.carrier = btn.dataset.carrier;
+      syncCarrierUI();
+      renderSheet();
+      showToast('已入' + (state.carrier === 'sheet' ? '笺' : state.carrier === 'fan' ? '团扇' : '书签'));
     });
   });
 
@@ -237,7 +360,7 @@
     showToast(raw ? '署名印已刻 ✓' : '已恢复水影笺印');
   });
 
-  // ---------- 陈列室 ----------
+  // ---------- 长物斋 ----------
   $('#galleryBtn').addEventListener('click', () => GALLERY.show());
   GALLERY.setHandlers({
     async save(dataUrl, num) { await saveDataUrl(dataUrl, num, !!(window.xhs && window.xhs.miniTool)); },
@@ -258,10 +381,13 @@
       number: state.number,
       mind: state.mind ? state.mind.name : '',
       poem: state.poem ? state.poem.text : '',
-      theme: state.palette.label,
+      theme: state.palette.identity || state.palette.label,
+      carrier: state.carrier,
+      carrierLabel: state.carrier === 'fan' ? '团扇' : state.carrier === 'bookmark' ? '书签' : '笺',
+      material: currentMaterial() ? currentMaterial().name : '',
       ts: Date.now(),
       dataUrl: paperCanvas.toDataURL('image/jpeg', 0.86),
-    }).then(store => showToast(store === 'ls' ? '已收入陈列室 ✓（本机轻量存储）' : '已收入陈列室 ✓'))
+    }).then(store => showToast(store === 'ls' ? '已入长物斋 ✓（本机轻量存储）' : '已入长物斋 ✓'))
       .catch(err => showToast('收藏失败 · ' + (err && err.message ? err.message.slice(0, 24) : '请稍后再试')));
   });
 

@@ -1,12 +1,15 @@
-/* 水影笺 · 陈列室（本地作品库）
+/* 水影笺 · 长物斋（本地展品库）
    首选 IndexedDB；浏览器受限（隐私模式/内置浏览器禁用）时自动降级 localStorage（上限 8 张）。
-   展墙视图：深色展墙网格 + 展签，点开看大图可再保存/发笔记/删除。数据仅存于本机设备。 */
+   展墙视图：深色展墙网格 + 展签，点开看大图可再保存/发笔记/删除。数据仅存于本机设备。
+   v3.6 策展：用户可把最多九件作品放入「斋展」，旧数据未上展仍可正常显示。 */
 
 window.GALLERY = (function () {
   'use strict';
 
   const DB_NAME = 'syj_gallery_v1', STORE = 'works', CAP = 60, LS_CAP = 8, LS_KEY = 'syj_gallery_ls';
+  const EXHIBIT_CAP = 9;
   let dbPromise = null, idbBroken = false;
+  let currentFilter = 'all';
 
   function open() {
     if (dbPromise) return dbPromise;
@@ -91,6 +94,17 @@ window.GALLERY = (function () {
     return store;
   }
 
+  async function setFeatured(id, featured) {
+    const works = await all();
+    const work = works.find(w => String(w.id) === String(id));
+    if (!work) return false;
+    const exhibitCount = works.filter(w => w.featured).length;
+    if (featured && !work.featured && exhibitCount >= EXHIBIT_CAP) return false;
+    work.featured = !!featured;
+    await put(work);
+    return true;
+  }
+
   /* ---------- 展墙视图 ---------- */
   let view = null;
   let onSave = null, onPost = null;   // 由 main.js 注入（桥接保存/发笔记）
@@ -100,12 +114,25 @@ window.GALLERY = (function () {
     view = document.createElement('div');
     view.id = 'galleryView';
     view.innerHTML =
-      '<div class="gv-head"><span class="gv-title">陈 列 室</span><span class="gv-count"></span>' +
+      '<div class="gv-head"><span class="gv-title">长 物 斋</span><span class="gv-count"></span>' +
       '<button class="gv-close">返回</button></div>' +
+      '<div class="gv-curation">' +
+        '<div class="gv-tabs">' +
+          '<button class="gv-tab active" data-filter="all">全 部</button>' +
+          '<button class="gv-tab" data-filter="featured">斋 展</button>' +
+        '</div>' +
+        '<span class="gv-note">斋展最多九件</span>' +
+      '</div>' +
       '<div class="gv-grid"></div>' +
       '<div class="gv-detail hidden"></div>';
     document.body.appendChild(view);
     view.querySelector('.gv-close').addEventListener('click', hide);
+    view.querySelector('.gv-tabs').addEventListener('click', event => {
+      const btn = event.target.closest('.gv-tab');
+      if (!btn) return;
+      currentFilter = btn.dataset.filter;
+      render();
+    });
   }
 
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -113,21 +140,26 @@ window.GALLERY = (function () {
   function cardHTML(w) {
     return '<div class="gv-card" data-id="' + w.id + '">' +
       '<img src="' + w.dataUrl + '" alt="">' +
+      (w.featured ? '<span class="gv-badge">斋展</span>' : '') +
       '<div class="gv-tag">第 ' + w.number + ' 号 · ' + esc(w.mind) + '</div></div>';
   }
 
   async function render() {
     const works = await all();
-    view.querySelector('.gv-count').textContent = works.length ? works.length + ' 件' : '';
+    const shown = currentFilter === 'featured' ? works.filter(w => w.featured) : works;
+    view.querySelectorAll('.gv-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.filter === currentFilter));
+    view.querySelector('.gv-count').textContent = shown.length ? shown.length + ' 件' : '';
     const grid = view.querySelector('.gv-grid');
     const detail = view.querySelector('.gv-detail');
     detail.classList.add('hidden');
     grid.classList.remove('hidden');
     grid.innerHTML = works.length
-      ? works.map(cardHTML).join('')
-      : '<div class="gv-empty">还没有收藏的笺<br>拓一张喜欢的，收入陈列室吧</div>';
+      ? shown.map(cardHTML).join('')
+      : (currentFilter === 'featured'
+        ? '<div class="gv-empty">斋展未立<br>点开一件长物，上展即可</div>'
+        : '<div class="gv-empty">长物斋尚空<br>拓一张喜欢的，收入斋中吧</div>');
     grid.querySelectorAll('.gv-card').forEach(card => {
-      card.addEventListener('click', () => showDetail(works.find(w => String(w.id) === card.dataset.id)));
+      card.addEventListener('click', () => showDetail(shown.find(w => String(w.id) === card.dataset.id)));
     });
   }
 
@@ -138,10 +170,14 @@ window.GALLERY = (function () {
     detail.classList.remove('hidden');
     detail.innerHTML =
       '<img class="gv-big" src="' + w.dataUrl + '" alt="">' +
-      '<div class="gv-dtag">流沙笺 · 第 ' + w.number + ' 号 · 心相「' + esc(w.mind) + '」<br>' + esc(w.poem || '') + '</div>' +
+      '<div class="gv-dtag">' + esc(w.theme || '流沙笺') + ' · 第 ' + w.number + ' 号 · 心相「' + esc(w.mind) + '」' +
+      (w.carrierLabel && w.carrierLabel !== '笺' ? '<br>成器 · ' + esc(w.carrierLabel) : '') +
+      (w.material ? '<br>辅料 · ' + esc(w.material) : '') +
+      '<br>' + esc(w.poem || '') + '</div>' +
       '<div class="gv-actions">' +
       '<button class="tool-btn small" data-act="save">保存图片</button>' +
       '<button class="tool-btn small" data-act="post">发笔记</button>' +
+      '<button class="tool-btn small" data-act="feature">' + (w.featured ? '撤出斋展' : '入斋展') + '</button>' +
       '<button class="tool-btn small ghost" data-act="del">删除</button>' +
       '</div>';
     detail.querySelectorAll('[data-act]').forEach(btn => {
@@ -149,6 +185,11 @@ window.GALLERY = (function () {
         const act = btn.dataset.act;
         if (act === 'save' && onSave) await onSave(w.dataUrl, w.number);
         if (act === 'post' && onPost) onPost(w);
+        if (act === 'feature') {
+          const ok = await setFeatured(w.id, !w.featured);
+          if (!ok) { btn.textContent = '斋展已满'; return; }
+          await render();
+        }
         if (act === 'del') { await remove(w.id); await render(); }
       });
     });
@@ -157,5 +198,5 @@ window.GALLERY = (function () {
   function show() { ensureView(); render(); view.classList.add('show'); }
   function hide() { if (view) view.classList.remove('show'); }
 
-  return { add, all, remove, show, hide, setHandlers: (o) => { onSave = o.save; onPost = o.post; } };
+  return { add, all, remove, setFeatured, show, hide, setHandlers: (o) => { onSave = o.save; onPost = o.post; } };
 })();

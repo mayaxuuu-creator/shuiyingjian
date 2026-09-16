@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#101614">
 <title>水影笺 · 把千里江山搅进水里</title>
-<link rel="stylesheet" href="./css/main.css?v=1.8">
+<link rel="stylesheet" href="./css/main.css?v=3.6">
 <link rel="stylesheet" href="./fonts/wenkai.css?v=1.7">
 </head>
 <body>
@@ -21,7 +21,7 @@
       <span class="brand-dot"></span>
       <span class="brand-vert">水影笺</span>
       <span class="brand-sub-vert">以水为纸 · 滴墨成笺</span>
-      <button id="galleryBtn" title="陈列室">藏</button>
+      <button id="galleryBtn" title="长物斋">藏</button>
     </div>
 
     <div id="poolWrap">
@@ -33,8 +33,8 @@
       <div id="themeSwitch">
         <button class="theme-tab active" data-theme="qinglv"><i></i>青绿</button>
         <button class="theme-tab" data-theme="shui"><i></i>松烟</button>
-        <button class="theme-tab" data-theme="dunhuang"><i></i>敦煌</button>
-        <button class="theme-tab" data-theme="ruyao"><i></i>汝窑</button>
+        <button class="theme-tab" data-theme="dunhuang"><i></i>晨光敦煌</button>
+        <button class="theme-tab" data-theme="ruyao"><i></i>雨过汝窑</button>
         <button class="theme-tab" data-theme="zhongqiu"><i></i>中秋</button>
       </div>
     </div>
@@ -43,11 +43,20 @@
   <footer id="dock">
     <div class="dock-label"><span>择 墨</span></div>
     <div id="palette"></div>
+    <div id="freedomBar">
+      <div class="freedom-group"><span class="freedom-label">辅色</span><div class="freedom-options" id="accentOptions"></div></div>
+      <div class="freedom-group"><span class="freedom-label">水势</span><div class="freedom-options" data-freedom="water"><button data-value="slow">缓</button><button data-value="normal" class="active">常</button><button data-value="fast">急</button></div></div>
+      <div class="freedom-group"><span class="freedom-label">墨量</span><div class="freedom-options" data-freedom="ink"><button data-value="light">轻</button><button data-value="normal" class="active">常</button><button data-value="rich">浓</button></div></div>
+      <div class="freedom-group"><span class="freedom-label">点睛</span><div class="freedom-options" data-freedom="point"><button data-value="low">少</button><button data-value="normal" class="active">常</button><button data-value="high">多</button></div></div>
+      <button id="stackCount" class="freedom-stack" title="当前池中已叠印层数">叠印 0/3</button>
+    </div>
     <div id="tools">
       <div class="tool-group">
         <button class="tool-btn" data-pattern="yun">云纹</button>
         <button class="tool-btn" data-pattern="lang">浪纹</button>
         <button class="tool-btn" data-pattern="xuan">漩涡</button>
+        <button class="tool-btn pattern-only" data-pattern="feitian" data-only="dunhuang" hidden>飞天带</button>
+        <button class="tool-btn pattern-only" data-pattern="yuguo" data-only="ruyao" hidden>雨过纹</button>
       </div>
       <div class="tool-group">
         <button class="tool-btn ghost" id="clearBtn">清池</button>
@@ -63,10 +72,24 @@
     <button data-mode="full" class="active">成笺</button>
     <button data-mode="pure">素笺</button>
   </div>
+  <div id="finishBar" class="hidden">
+    <div class="finish-row">
+      <span class="finish-label">成 器</span>
+      <div id="carrierSeg">
+        <button data-carrier="sheet" class="active">笺</button>
+        <button data-carrier="fan">团扇</button>
+        <button data-carrier="bookmark">书签</button>
+      </div>
+    </div>
+    <div class="finish-row">
+      <span class="finish-label">辅 料</span>
+      <div id="resultMaterialList"></div>
+    </div>
+  </div>
   <div id="paperSheet"><canvas id="paperCanvas"></canvas></div>
   <div id="resultBar" class="hidden">
     <button class="tool-btn ghost" id="againBtn">再拓一张</button>
-    <button class="tool-btn" id="collectBtn">收入陈列室</button>
+    <button class="tool-btn" id="collectBtn">收入长物斋</button>
     <button class="cta" id="saveBtn">保存图片</button>
   </div>
   <div id="sealRow">署名印 · <span id="sealLabel">水影笺印</span>
@@ -98,12 +121,12 @@
   </div>
 </div>
 
-<script src="./js/palette.js?v=3.5"></script>
-<script src="./js/fluid.js?v=3.5"></script>
-<script src="./js/patterns.js?v=3.5"></script>
-<script src="./js/rubbing.js?v=3.5"></script>
-<script src="./js/mind.js?v=3.5"></script>
-<script src="./js/gallery.js?v=3.5"></script>
-<script src="./js/main.js?v=3.5"></script>
+<script src="./js/palette.js?v=3.6"></script>
+<script src="./js/fluid.js?v=3.6"></script>
+<script src="./js/patterns.js?v=3.6"></script>
+<script src="./js/rubbing.js?v=3.6"></script>
+<script src="./js/mind.js?v=3.6"></script>
+<script src="./js/gallery.js?v=3.6"></script>
+<script src="./js/main.js?v=3.6"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* 水影笺 · 纹样保底
+/* 水影笺 · 纹样保底（v3.6 受控自由度）
    一键编排的"墨序"：位置/时机/力度预设，保证出图下限。
    配色规则（Maya 定）：主调 = 用户当前选中色，辅色 = 每次随机另择一款，
    点睛固定（金泥/朱砂）——构图骨架不变，每次点击换装。
@@ -16,12 +16,35 @@ window.PATTERNS = (function () {
     return [rgb[0] / m, rgb[1] / m, rgb[2] / m];
   }
 
-  /* 配色方案：primary=用户选中色；accent=随机辅色（每次点击不同）；
+  /* 配色方案：primary=用户选中色；accent=随机辅色（优先从盘内白名单取）；
      点睛按盘取（金泥/暖金/朱砂）。每个角色保留各自的 gain（松烟五墨的浓淡由此生效） */
-  function scheme(palette, primaryEntry) {
+  function readOptions(options) {
+    const o = options || {};
+    return {
+      accentLock: !!o.accentLock,
+      accentName: o.accentName || 'random',
+      water: ['slow', 'normal', 'fast'].includes(o.water) ? o.water : 'normal',
+      ink: ['light', 'normal', 'rich'].includes(o.ink) ? o.ink : 'normal',
+      point: ['low', 'normal', 'high'].includes(o.point) ? o.point : 'normal',
+    };
+  }
+
+  function scheme(palette, primaryEntry, options) {
+    const opts = readOptions(options);
     const primaryE = primaryEntry || palette.colors[palette.defaultIndex];
     const others = palette.colors.filter(c => c !== primaryE);
-    const accentE = others.length ? others[(Math.random() * others.length) | 0] : primaryE;
+    const accentPool = palette.accentPool
+      ? palette.colors.filter(c => palette.accentPool.includes(c.name) && c !== primaryE)
+      : others;
+    const poolIndex = accentPool.indexOf(primaryE);
+    const lockedIndex = poolIndex < 0 ? 0 : (poolIndex + 1) % accentPool.length;
+    const chosenAccent = opts.accentName && opts.accentName !== 'random'
+      ? accentPool.find(c => c.name === opts.accentName)
+      : null;
+    const accentE = !accentPool.length ? primaryE
+      : (chosenAccent || accentPool[(Math.random() * accentPool.length) | 0]);
+    const legacyAccentE = accentPool.length ? accentE
+      : (others.length ? others[(Math.random() * others.length) | 0] : primaryE);
     const sparkE = palette.colors.find(c => c.name === '金泥')
       || palette.colors.find(c => c.name === '暖金')
       || palette.colors.find(c => c.name === '朱砂')
@@ -32,6 +55,7 @@ window.PATTERNS = (function () {
       accent: role(accentE),
       spark: role(sparkE),
       damp: palette.damp || 1.0,   // 套装注墨衰减：敦煌留白露底纹，其余满铺
+      options: opts,
     };
   }
   function ink(s, color, strength, jitter) {
@@ -167,10 +191,137 @@ window.PATTERNS = (function () {
   }
 
   const registry = { yun, lang, xuan, guiyu };
+
+  /* 专属纹样：只暴露给对应色盘，避免把主题语法变成全局混搭 */
+  function feitian(s) {
+    const e = [];
+    const bands = [
+      { y: 0.28, amp: 0.11, phase: 0, c: s.primary, st: 0.52 },
+      { y: 0.48, amp: 0.08, phase: 2.1, c: s.accent, st: 0.44 },
+      { y: 0.68, amp: 0.06, phase: 4.2, c: s.primary, st: 0.30 },
+    ];
+    bands.forEach((band, r) => {
+      for (let i = 0; i < 22; i++) {
+        const t = i / 21;
+        const role = i % 7 === 5 ? s.spark : band.c;
+        e.push({
+          delay: r * 210 + i * 35,
+          x: 0.05 + 0.90 * t,
+          y: band.y + band.amp * Math.sin(t * Math.PI * 2 + band.phase),
+          dx: rnd(210, 285),
+          dy: rnd(-48, 42),
+          color: ink(s, role, band.st, rnd(0.9, 1.1)),
+          radius: role === s.spark ? 0.55 : 1.05,
+        });
+      }
+    });
+    for (let i = 0; i < 9; i++) {
+      e.push({
+        delay: 1150 + i * 52, x: rnd(0.18, 0.82), y: rnd(0.20, 0.72),
+        dx: rnd(-80, 110), dy: rnd(-55, 25),
+        color: ink(s, s.spark, 0.30, rnd(0.85, 1.1)),
+        radius: rnd(0.32, 0.55),
+      });
+    }
+    return e;
+  }
+
+  function yuguo(s) {
+    const e = [];
+    for (let i = 0; i < 21; i++) {
+      const x = 0.13 + 0.74 * (i / 20);
+      e.push({
+        delay: i * 48, x: x + rnd(-0.012, 0.012), y: rnd(0.12, 0.28),
+        dx: rnd(-22, 22), dy: rnd(-150, -95),
+        color: ink(s, i % 4 === 3 ? s.accent : s.primary, 0.36, rnd(0.9, 1.1)),
+        radius: rnd(0.42, 0.62),
+      });
+    }
+    for (let i = 0; i < 14; i++) {
+      const x = 0.12 + 0.76 * (i / 13);
+      e.push({
+        delay: 760 + i * 36, x, y: rnd(0.24, 0.78),
+        dx: rnd(-35, 35), dy: rnd(-90, -55),
+        color: ink(s, s.accent, 0.22, rnd(0.85, 1.1)),
+        radius: rnd(0.32, 0.48),
+      });
+    }
+    for (let i = 0; i < 18; i++) {
+      e.push({
+        delay: 1250 + i * 32,
+        x: 0.10 + 0.80 * (i / 17), y: 0.68 + rnd(-0.025, 0.025),
+        dx: rnd(85, 145), dy: rnd(-20, 15),
+        color: ink(s, i % 5 === 4 ? s.spark : s.primary, 0.24, rnd(0.9, 1.1)),
+        radius: 0.95,
+      });
+    }
+    return e;
+  }
+  registry.feitian = feitian;
+  registry.yuguo = yuguo;
+
+  /* 把受控自由度统一放在事件生成之后：改水势、墨量、点睛，不破坏纹样骨架 */
+  function similarRatio(a, b) {
+    const am = Math.max(a[0], a[1], a[2]) || 1;
+    const bm = Math.max(b[0], b[1], b[2]) || 1;
+    const ax = a[0] / am, ay = a[1] / am, az = a[2] / am;
+    const bx = b[0] / bm, by = b[1] / bm, bz = b[2] / bm;
+    return Math.abs(ax - bx) + Math.abs(ay - by) + Math.abs(az - bz) < 0.16;
+  }
+
+  function applyFreedom(events, s) {
+    const o = s.options;
+    const waterScale = o.water === 'slow' ? 0.74 : (o.water === 'fast' ? 1.24 : 1);
+    const delayScale = o.water === 'slow' ? 1.12 : (o.water === 'fast' ? 0.88 : 1);
+    const inkScale = o.ink === 'light' ? 0.82 : (o.ink === 'rich' ? 1.16 : 1);
+    const radiusScale = o.ink === 'light' ? 0.94 : (o.ink === 'rich' ? 1.08 : 1);
+    let out = events.map(ev => ({
+      ...ev,
+      delay: ev.delay * delayScale,
+      dx: ev.dx * waterScale,
+      dy: ev.dy * waterScale,
+      color: [ev.color[0] * inkScale, ev.color[1] * inkScale, ev.color[2] * inkScale],
+      radius: ev.radius * radiusScale,
+    }));
+
+    if (o.point === 'low') {
+      const kept = [];
+      let sparkSeen = 0;
+      out.forEach(ev => {
+        if (similarRatio(ev.color, s.spark.rgb)) {
+          sparkSeen += 1;
+          if (sparkSeen % 2 === 0) return;
+        }
+        kept.push(ev);
+      });
+      out = kept;
+    }
+
+    if (o.point === 'high') {
+      const maxDelay = out.reduce((v, ev) => Math.max(v, ev.delay), 0);
+      const anchors = out.filter((ev, i) => i % Math.max(4, Math.floor(out.length / 8)) === 0);
+      anchors.forEach((anchor, i) => {
+        for (let k = 0; k < 2; k++) {
+          const strength = ink(s, s.spark, 0.30 + Math.random() * 0.08, rnd(0.9, 1.1));
+          out.push({
+            delay: maxDelay + 90 + i * 34 + k * 24,
+            x: anchor.x + rnd(-0.035, 0.035),
+            y: anchor.y + rnd(-0.035, 0.035),
+            dx: rnd(-65, 85) * waterScale,
+            dy: rnd(-55, 45) * waterScale,
+            color: strength,
+            radius: rnd(0.26, 0.44),
+          });
+        }
+      });
+    }
+    return out;
+  }
   return {
-    make(name, palette, primaryEntry) {
+    make(name, palette, primaryEntry, options) {
       const fn = registry[name] || yun;
-      return fn(scheme(palette, primaryEntry));
+      const s = scheme(palette, primaryEntry, options);
+      return applyFreedom(fn(s), s);
     },
     names: Object.keys(registry),
   };

@@ -60,6 +60,7 @@ body {
   display: flex;
   flex-direction: column;
   /* 顶部大留白：状态栏 + 容器返回/分享胶囊区 */
+  padding: 88px 14px 12px;
   padding: calc(env(safe-area-inset-top, 0px) + 88px) 14px calc(12px + env(safe-area-inset-bottom, 0px));
   gap: 12px;
 }
@@ -117,6 +118,10 @@ body {
 }
 #pool {
   position: absolute;
+  top: 5px;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
   inset: 5px;
   width: calc(100% - 10px);
   height: calc(100% - 10px);
@@ -127,6 +132,10 @@ body {
 }
 #poolCorners {
   position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  left: 1px;
   inset: 1px;
   pointer-events: none;
   z-index: 3;
@@ -274,6 +283,39 @@ body {
     0 0 0 3.5px rgba(201, 169, 97, 0.85),
     0 2px 8px rgba(0, 0, 0, 0.5);
 }
+#materials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(201, 169, 97, 0.62);
+  font-size: 10.5px;
+  letter-spacing: 0.38em;
+  text-indent: 0.38em;
+}
+#materialList {
+  display: flex;
+  justify-content: center;
+  gap: 9px;
+}
+.material-btn {
+  appearance: none;
+  width: 23px;
+  height: 23px;
+  border: 1px solid rgba(201, 169, 97, 0.42);
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+.material-btn.active {
+  transform: scale(1.14);
+  border-color: rgba(201, 169, 97, 0.95);
+  box-shadow:
+    0 0 0 2px #0b0f0d,
+    0 0 0 3px rgba(201, 169, 97, 0.72);
+}
 #tools {
   display: flex;
   align-items: center;
@@ -326,6 +368,10 @@ body {
 /* ---------- 覆纸拓印 ---------- */
 #printOverlay {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 50;
   display: flex;
@@ -363,8 +409,8 @@ body {
 #paperCanvas {
   display: block;
   width: min(82vw, 312px);
-  width: min(82vw, 42vh * 0.692);
-  width: min(82vw, 42dvh * 0.692);
+  width: min(82vw, 35vh * 0.692);
+  width: min(82vw, 35dvh * 0.692);
   aspect-ratio: 720 / 1040;
   height: auto;
   border-radius: 4px;
@@ -377,6 +423,112 @@ body {
   transition: opacity 0.4s;
 }
 #resultBar.hidden { opacity: 0; pointer-events: none; }
+
+/* ---------- 受控自由度 ---------- */
+#freedomBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 31px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+#freedomBar::-webkit-scrollbar { display: none; }
+.freedom-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.freedom-label,
+.finish-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: rgba(201, 169, 97, 0.66);
+}
+.freedom-options,
+#accentOptions,
+#carrierSeg,
+#resultMaterialList {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.freedom-options button,
+#accentOptions button,
+.finish-material,
+#carrierSeg button {
+  appearance: none;
+  min-width: 25px;
+  min-height: 23px;
+  padding: 4px 7px;
+  font-family: var(--serif);
+  font-size: 10.5px;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  color: rgba(233, 226, 208, 0.66);
+  background: rgba(233, 226, 208, 0.05);
+  border: 1px solid rgba(233, 226, 208, 0.13);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.freedom-options button.active,
+#accentOptions button.active,
+#carrierSeg button.active {
+  color: #171d1a;
+  background: #ece5d2;
+  border-color: rgba(201, 169, 97, 0.85);
+}
+.finish-material.active {
+  color: #171d1a;
+  background: #ece5d2;
+  border-color: rgba(201, 169, 97, 0.85);
+}
+.freedom-stack {
+  appearance: none;
+  flex: 0 0 auto;
+  font-family: var(--serif);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: rgba(201, 169, 97, 0.86);
+  background: rgba(201, 169, 97, 0.08);
+  border: 1px solid rgba(201, 169, 97, 0.35);
+  border-radius: 7px;
+  min-height: 23px;
+  padding: 4px 8px;
+  cursor: default;
+}
+
+/* ---------- 拓后成器与辅料 ---------- */
+#finishBar {
+  width: min(92vw, 440px);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px 10px;
+  background: rgba(233, 226, 208, 0.06);
+  border: 1px solid rgba(201, 169, 97, 0.24);
+  border-radius: 12px;
+}
+#finishBar.hidden { display: none; }
+.finish-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+#resultMaterialList {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.finish-material {
+  min-width: 36px;
+  padding: 5px 8px;
+}
 
 /* ---------- 分享文案卡 ---------- */
 #shareCard {
@@ -479,6 +631,8 @@ body {
   #stage { padding-left: 10px; padding-right: 10px; }
   .swatch { width: 26px; height: 26px; }
   #palette { gap: 11px; }
+  #materials { gap: 8px; }
+  .material-btn { width: 21px; height: 21px; }
   .tool-btn { padding: 9px 13px; font-size: 13px; }
   .cta { padding: 10px 20px 10px 24px; font-size: 14px; }
   .brand-sub-vert { display: none; }
@@ -504,15 +658,13 @@ body {
   letter-spacing: 0.2em;
   text-indent: 0.2em;
   padding: 6px 16px;
-  cursor: pointer;
-  transition: all 0.25s;
-  /* 文楷字形在默认行高下视觉偏下：flex 居中 + line-height:1，字形框即按钮框 */
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 31px;
   line-height: 1;
-  padding-top: 7px;
-  padding-bottom: 5px;
+  cursor: pointer;
+  transition: all 0.25s;
 }
 #modeSeg button.active {
   background: var(--paper);
@@ -545,6 +697,10 @@ body {
 /* ---------- 刻印弹窗 ---------- */
 #sealModal {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 90;
   display: flex;
@@ -600,6 +756,10 @@ body {
 /* ---------- 陈列室展墙 ---------- */
 #galleryView {
   position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   inset: 0;
   z-index: 80;
   background:
@@ -607,9 +767,46 @@ body {
     radial-gradient(120% 90% at 50% 0%, #17201d 0%, #0d1210 60%, #090c0a 100%);
   display: none;
   flex-direction: column;
+  padding: 16px;
   padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(16px + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Chrome 61 baseline: Flexbox gap and modern sizing get explicit fallbacks. */
+html.no-flex-gap #stage > * + * { margin-top: 12px; }
+html.no-flex-gap #poolRow > * + * { margin-left: 10px; }
+html.no-flex-gap #brandStrip > * + * { margin-top: 12px; }
+html.no-flex-gap #themeSwitch > * + * { margin-left: 5px; }
+html.no-flex-gap #dock > * + * { margin-top: 9px; }
+html.no-flex-gap .dock-label::before { margin-right: 12px; }
+html.no-flex-gap .dock-label::after { margin-left: 12px; }
+html.no-flex-gap #palette > * + * { margin-left: 13px; }
+html.no-flex-gap #tools > * + * { margin-left: 10px; }
+html.no-flex-gap .tool-group > * + * { margin-left: 8px; }
+html.no-flex-gap #printOverlay > * + * { margin-top: 14px; }
+html.no-flex-gap #resultBar > * + * { margin-left: 14px; }
+html.no-flex-gap #shareCard > * + * { margin-top: 8px; }
+html.no-flex-gap .share-actions > * + * { margin-left: 8px; }
+html.no-flex-gap #sealRow > * + * { margin-left: 8px; }
+html.no-flex-gap .seal-box > * + * { margin-top: 12px; }
+html.no-flex-gap .seal-modal-actions > * + * { margin-left: 10px; }
+html.no-flex-gap .gv-head > * + * { margin-left: 12px; }
+html.no-flex-gap #materialList > * + * { margin-left: 9px; }
+html.no-flex-gap .gv-curation > * + * { margin-left: 12px; }
+html.no-flex-gap .gv-tabs > * + * { margin-left: 8px; }
+html.no-flex-gap .gv-close { margin-left: auto; }
+html.no-flex-gap .gv-detail > * + * { margin-top: 14px; }
+html.no-flex-gap .gv-actions > * + * { margin-left: 10px; }
+html.no-flex-gap #toast { bottom: 120px; }
+html.no-flex-gap .seal-box,
+html.no-flex-gap #shareCard { width: 82vw; max-width: 420px; }
+html.no-flex-gap .seal-box { max-width: 320px; }
+html.no-flex-gap .gv-big { width: 82vw; max-width: 300px; height: auto; }
+
+@media (max-width: 480px) {
+  html.no-flex-gap #palette > * + * { margin-left: 11px; }
+  html.no-flex-gap #themeSwitch > * + * { margin-left: 4px; }
 }
 #galleryView.show { display: flex; }
 .gv-head {
@@ -642,6 +839,43 @@ body {
   padding: 6px 16px;
   cursor: pointer;
 }
+.gv-curation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 2px 14px;
+  border-bottom: 1px solid rgba(201, 169, 97, 0.16);
+  margin-bottom: 18px;
+}
+.gv-tabs {
+  display: flex;
+  gap: 8px;
+}
+.gv-tab {
+  appearance: none;
+  font-family: var(--serif);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  color: rgba(233, 226, 208, 0.6);
+  background: rgba(233, 226, 208, 0.05);
+  border: 1px solid rgba(233, 226, 208, 0.14);
+  border-radius: 999px;
+  padding: 7px 16px;
+  cursor: pointer;
+}
+.gv-tab.active {
+  color: #171d1a;
+  background: #ece5d2;
+  border-color: rgba(201, 169, 97, 0.8);
+}
+.gv-note {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: rgba(201, 169, 97, 0.56);
+  white-space: nowrap;
+}
 .gv-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -649,6 +883,7 @@ body {
   padding-bottom: 24px;
 }
 .gv-card {
+  position: relative;
   border: 1px solid rgba(201, 169, 97, 0.4);
   border-radius: 4px;
   overflow: hidden;
@@ -658,6 +893,17 @@ body {
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .gv-card:active { transform: scale(0.97); }
+.gv-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 7px;
+  background: rgba(12, 16, 14, 0.82);
+  border: 1px solid rgba(201, 169, 97, 0.7);
+  color: rgba(233, 226, 208, 0.94);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
 .gv-card img { display: block; width: 100%; height: auto; }
 .gv-tag {
   font-family: var(--serif);
@@ -712,5 +958,6 @@ body {
   #watermark { font-size: 48px; right: 2vw; }
   .theme-tab { padding: 10px 4px 8px; font-size: 11px; }
   #themeSwitch { right: 10px; gap: 4px; }
+  .gv-note { display: none; }
   .result-bar-wrap, #resultBar { flex-wrap: wrap; }
 }

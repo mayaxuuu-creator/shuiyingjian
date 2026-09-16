@@ -302,6 +302,169 @@ window.RUBBING = (function () {
     return { chars: [cs[0], cs[1], cs[2], '印'], font: 24, col3: true };
   }
 
+  /* 盘内辅料：每盘最多两种白名单辅料，一次只选一种；宁少勿满，避免抢过墨势 */
+  function drawAuxiliary(ctx, W, H, aux) {
+    if (!aux || !Array.isArray(aux.colors) || !aux.colors.length) return;
+    const density = aux.density || 0.5;
+    const clusterCount = Math.round(3 + density * 5);
+    const isGold = aux.type === 'gold';
+    const isMica = aux.type === 'mica';
+
+    for (let c = 0; c < clusterCount; c++) {
+      const cx = 42 + Math.random() * (W - 84);
+      const cy = 42 + Math.random() * (H - 84);
+      const pieces = Math.round(4 + density * (isGold ? 10 : 14));
+      for (let i = 0; i < pieces; i++) {
+        const x = cx + (Math.random() - 0.5) * (52 + density * 34);
+        const y = cy + (Math.random() - 0.5) * (52 + density * 34);
+        const color = aux.colors[(Math.random() * aux.colors.length) | 0];
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(Math.random() * Math.PI);
+        ctx.fillStyle = color;
+
+        if (isGold) {
+          const r = 0.8 + Math.random() * 2.1;
+          ctx.globalAlpha = 0.20 + Math.random() * 0.32;
+          ctx.fillRect(0, 0, r * (1.1 + Math.random()), r * (0.45 + Math.random() * 0.42));
+        } else if (isMica) {
+          const r = 0.4 + Math.random() * 1.3;
+          ctx.globalAlpha = 0.12 + Math.random() * 0.24;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r * (1.2 + Math.random()), r, Math.random() * Math.PI, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          const r = 0.4 + Math.random() * 1.5;
+          ctx.globalAlpha = 0.10 + Math.random() * 0.22;
+          ctx.beginPath();
+          ctx.arc(0, 0, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* 成器：同一张拓印可入笺、入团扇、入书签。
+     不做简单裁图；每种载体重排器骨、边界与配件。 */
+  function makeCarrier(source, carrier) {
+    if (!source || carrier === 'sheet') return source;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    if (carrier === 'fan') {
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, '#efe9db');
+      bg.addColorStop(1, '#ddd3bc');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      const cx = W / 2;
+      const cy = 424;
+      const r = 296;
+      ctx.strokeStyle = 'rgba(74,64,52,.38)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + r - 4);
+      ctx.lineTo(cx, H - 116);
+      ctx.stroke();
+
+      const handle = ctx.createLinearGradient(cx - 9, 0, cx + 9, 0);
+      handle.addColorStop(0, '#8d6e43');
+      handle.addColorStop(.5, '#c39a60');
+      handle.addColorStop(1, '#78592f');
+      ctx.fillStyle = handle;
+      roundRect(ctx, cx - 8, cy + 150, 16, H - 290, 8);
+      ctx.fill();
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.clip();
+      const crop = 548;
+      ctx.drawImage(source, (source.width - crop) / 2, (source.height - crop) * .40, crop, crop, cx - r, cy - r, r * 2, r * 2);
+      ctx.restore();
+
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = '#7e5e33';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 7, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(232,206,142,.88)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r + 2, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(126,94,51,.55)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy + r + 10);
+      ctx.lineTo(cx, cy + r + 48);
+      ctx.stroke();
+      ctx.fillStyle = '#a5382b';
+      ctx.beginPath();
+      ctx.arc(cx, cy + r + 58, 6, 0, Math.PI * 2);
+      ctx.fill();
+      return canvas;
+    }
+
+    if (carrier === 'bookmark') {
+      ctx.fillStyle = '#ece7d8';
+      ctx.fillRect(0, 0, W, H);
+      const x = 146;
+      const y = 44;
+      const w = 428;
+      const h = 952;
+      const radius = 22;
+      ctx.save();
+      roundRect(ctx, x, y, w, h, radius);
+      ctx.clip();
+      const cropW = 398;
+      const cropH = 920;
+      ctx.drawImage(source, (source.width - cropW) / 2, (source.height - cropH) / 2, cropW, cropH, x, y, w, h);
+      ctx.restore();
+
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = 'rgba(74,64,52,.52)';
+      roundRect(ctx, x, y, w, h, radius);
+      ctx.stroke();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = 'rgba(201,169,97,.72)';
+      roundRect(ctx, x + 8, y + 8, w - 16, h - 16, radius - 7);
+      ctx.stroke();
+
+      ctx.fillStyle = '#f6f1e2';
+      ctx.strokeStyle = 'rgba(74,64,52,.35)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x + w / 2, y + 52, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(126,94,51,.58)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + w / 2, y + h - 6);
+      ctx.lineTo(x + w / 2, y + h + 22);
+      ctx.stroke();
+      ctx.fillStyle = '#a5382b';
+      roundRect(ctx, x + w / 2 - 4, y + h + 22, 8, 36, 4);
+      ctx.fill();
+      return canvas;
+    }
+
+    return source;
+  }
+
+  function applyAuxiliary(target, auxiliary) {
+    if (!target || !auxiliary) return;
+    drawAuxiliary(target.getContext('2d'), target.width, target.height, auxiliary);
+  }
+
   function create(opts) {
     const pixels = opts.pixels;               // { data, width, height }
     const number = opts.number;
@@ -569,6 +732,9 @@ window.RUBBING = (function () {
     }
     ctx.globalAlpha = 1.0;
 
+    // 4.5 盘内辅料：纸上轻撒，不进入流体池；一次只叠加一种，保持画面干净
+    drawAuxiliary(ctx, W, H, opts.auxiliary);
+
     // 5. 题签（竖排诗笺；磁青 = 描金签；素笺模式省略）
     if (!pure) {
       const parts = poem.text.split('，');
@@ -717,5 +883,5 @@ window.RUBBING = (function () {
     ctx.closePath();
   }
 
-  return { create, preloadTextures, W, H };
+  return { create, makeCarrier, applyAuxiliary, preloadTextures, W, H };
 })();

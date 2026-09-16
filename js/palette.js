@@ -1,6 +1,8 @@
-/* 水影笺 · 套装定义（v2.0 策展套装制）
+/* 水影笺 · 套装定义（v3.6 策展套装制）
    每套 = 墨盘 + 池底 + 拓印纸底 + 材质 + 装饰开关，人工调校后成套上线（不做自由组合器）。
    material：拓印载体材质（rubbing.js 按此取装饰配色）
+   accentPool：随机辅色白名单；低出片色（灰陶/月白等）只能主动选，不进入随机污染源
+   materials：每盘只放一或两种高适配辅料，主界面一次选一种，避免辅料相互打架
    moon：月轮装饰（display shader 画淡金月晕，墨卷过月 = 云破月来）
    gain：注墨增益——亮度分层的墨色必须显式声明（归一化会抹掉浓淡差） */
 
@@ -25,6 +27,13 @@ window.PALETTES = {
       { name: '胭脂', rgb: [0.630, 0.115, 0.235] },
       { name: '金泥', rgb: [0.860, 0.640, 0.220] },
     ],
+    accentPool: ['石绿', '胭脂', '金泥'],
+    materials: [
+      { key: 'stone-dust', name: '石屑', type: 'dust', density: 0.72,
+        swatch: '#5e8f6f', colors: ['rgba(72,109,86,.46)', 'rgba(33,66,58,.34)', 'rgba(236,230,214,.22)'] },
+      { key: 'gold-leaf', name: '金箔', type: 'gold', density: 0.58,
+        swatch: '#d9b64a', colors: ['#d9b64a', '#b8912f', '#e8ca6b'] },
+    ],
     defaultIndex: 0,
   },
   shui: {
@@ -48,10 +57,18 @@ window.PALETTES = {
       { name: '花青', rgb: [0.230, 0.500, 0.780], gain: 0.80 },
       { name: '赭石', rgb: [0.700, 0.430, 0.200], gain: 0.75 },
     ],
+    accentPool: ['花青', '赭石'],
+    materials: [
+      { key: 'ink-dust', name: '墨尘', type: 'dust', density: 0.60,
+        swatch: '#41444c', colors: ['rgba(44,47,54,.42)', 'rgba(96,102,112,.28)', 'rgba(235,240,246,.14)'] },
+      { key: 'mica', name: '云母', type: 'mica', density: 0.46,
+        swatch: '#e7e9ef', colors: ['rgba(245,248,252,.55)', 'rgba(210,220,235,.34)', 'rgba(180,190,205,.22)'] },
+    ],
     defaultIndex: 1,
   },
   dunhuang: {
     key: 'dunhuang',
+    identity: '晨光敦煌',
     label: '敦煌',
     desc: '敦煌壁画 · 盛唐',
     material: 'xuanzhi',
@@ -72,10 +89,16 @@ window.PALETTES = {
       { name: '赭陶', rgb: [0.550, 0.300, 0.130] },
       { name: '灰陶', rgb: [0.450, 0.400, 0.350] },
     ],
+    accentPool: ['石青', '石绿', '金泥'],
+    materials: [
+      { key: 'sand-gold', name: '沙金', type: 'gold', density: 0.78,
+        swatch: '#d9a341', colors: ['#d9a341', '#b8862f', '#efd18c'] },
+    ],
     defaultIndex: 0,
   },
   ruyao: {
     key: 'ruyao',
+    identity: '雨过汝窑',
     label: '汝窑',
     desc: '汝窑天青 · 雨过天青',
     material: 'xuanzhi',
@@ -95,6 +118,11 @@ window.PALETTES = {
       { name: '铁线赭', rgb: [0.400, 0.280, 0.190] },   // 呼应开片铁线 #6A5A4A
       { name: '茶烟', rgb: [0.540, 0.450, 0.340] },     // 呼应开片金丝的暖调
       { name: '绛痕', rgb: [0.600, 0.230, 0.190] },     // 收敛版朱砂（原 0.70/0.20/0.12 在天青上突兀）
+    ],
+    accentPool: ['黛蓝', '铁线赭', '茶烟', '绛痕'],
+    materials: [
+      { key: 'mica', name: '云母', type: 'mica', density: 0.42,
+        swatch: '#f0f6f2', colors: ['rgba(245,252,248,.52)', 'rgba(206,228,219,.34)', 'rgba(200,184,136,.28)'] },
     ],
     defaultIndex: 0,
   },
@@ -117,6 +145,11 @@ window.PALETTES = {
       { name: '暖金', rgb: [0.850, 0.680, 0.300], gain: 0.90 },
       { name: '桂橙', rgb: [0.850, 0.550, 0.200], gain: 0.75 },
       { name: '绛纱', rgb: [0.550, 0.200, 0.250], gain: 0.70 },
+    ],
+    accentPool: ['天青', '暖金', '桂橙', '绛纱'],
+    materials: [
+      { key: 'star-dust', name: '星屑', type: 'mica', density: 0.52,
+        swatch: '#f2e9d0', colors: ['rgba(242,233,208,.58)', 'rgba(217,185,106,.42)', 'rgba(180,205,240,.30)'] },
     ],
     defaultIndex: 0,
   },

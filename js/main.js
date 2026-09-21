@@ -44,6 +44,9 @@
   const hint = $('#hint');
   const overlay = $('#printOverlay');
   const paperCanvas = $('#paperCanvas');
+  const umbrellaCanvas = $('#umbrellaCanvas');
+  const porcelainCanvas = $('#porcelainCanvas');
+  const paperSheet = $('#paperSheet');
   const resultBar = $('#resultBar');
   const caption = $('#sheetCaption');
   const shareCard = $('#shareCard');
@@ -61,6 +64,15 @@
   }
   function currentMaterial() {
     return (state.palette.materials || []).find(item => item.name === state.materialName) || null;
+  }
+  function carrierName(key) {
+    return {
+      fan: '团扇',
+      fanfold: '折扇',
+      umbrella: '油纸伞',
+      porcelain: '瓷器',
+      bookmark: '书签',
+    }[key || 'sheet'] || '笺';
   }
   function buildPalette() {
     paletteBox.innerHTML = '';
@@ -142,6 +154,22 @@
       btn.classList.toggle('active', btn.dataset.carrier === state.carrier));
   }
 
+  /* 非笺载体的导出画面默认走素笺：避免题签/编号压在器物上。 */
+  function renderPure() {
+    return state.pure;
+  }
+
+  function syncModeUI() {
+    document.querySelectorAll('#modeSeg button').forEach(btn =>
+      btn.classList.toggle('active', (btn.dataset.mode === 'pure') === renderPure()));
+  }
+
+  function syncCaption() {
+    if (!state.mind || !state.number) return;
+    caption.textContent = '第 ' + state.number + ' 号' +
+      (renderPure() ? ' · 素笺' : ' · 心相「' + state.mind.name + '」');
+  }
+
   function setTheme(palette) {
     state.palette = palette;
     state.colorIndex = palette.defaultIndex;
@@ -220,7 +248,7 @@
       number: state.number,
       mind: state.mind,
       poem: state.poem,
-      pure: state.pure,
+      pure: renderPure(),
       sealName: state.sealName,
       material: state.palette.material,
       suite: state.palette.key,
@@ -234,6 +262,49 @@
     paperCanvas.width = RUBBING.W;
     paperCanvas.height = RUBBING.H;
     paperCanvas.getContext('2d').drawImage(carried, 0, 0);
+    syncUmbrellaPreview();
+    syncPorcelainPreview(sheet);
+  }
+
+  /* 油纸伞的动态预览：预览层只保留圆形伞面，保存/发笔记仍用 paperCanvas 的静态导出图。 */
+  function syncUmbrellaPreview() {
+    if (state.carrier !== 'umbrella') {
+      paperSheet.classList.remove('umbrella-preview');
+      umbrellaCanvas.classList.add('hidden');
+      return;
+    }
+    umbrellaCanvas.classList.remove('hidden');
+    paperSheet.classList.add('umbrella-preview');
+    umbrellaCanvas.width = 720;
+    umbrellaCanvas.height = 720;
+    const uctx = umbrellaCanvas.getContext('2d');
+    uctx.clearRect(0, 0, 720, 720);
+    uctx.drawImage(paperCanvas, 0, 40, 720, 720, 0, 0, 720, 720);
+    uctx.globalCompositeOperation = 'destination-in';
+    uctx.beginPath();
+    uctx.arc(360, 380, 332, 0, Math.PI * 2);
+    uctx.fill();
+    uctx.globalCompositeOperation = 'source-over';
+  }
+
+  /* 瓷器使用轻量 WebGL 预览；WebGL 不可用时自动回落到 2D 静态导出图。 */
+  function syncPorcelainPreview(sheet) {
+    if (state.carrier !== 'porcelain' || !window.PORCELAIN3D || !window.PORCELAIN3D.show(porcelainCanvas, sheet)) {
+      window.PORCELAIN3D && window.PORCELAIN3D.stop();
+      porcelainCanvas.classList.add('hidden');
+      paperSheet.classList.remove('porcelain-preview');
+      return;
+    }
+    porcelainCanvas.classList.remove('hidden');
+    paperSheet.classList.add('porcelain-preview');
+  }
+
+  /* 长物斋/相册导出：瓷器同步当前 3D 器面；其余载体沿用静态导出。 */
+  function currentCarrierImage(type, quality) {
+    if (state.carrier === 'porcelain' && !porcelainCanvas.classList.contains('hidden')) {
+      return porcelainCanvas.toDataURL(type, quality);
+    }
+    return paperCanvas.toDataURL(type, quality);
   }
 
   document.querySelectorAll('#modeSeg button').forEach(btn => {
@@ -242,8 +313,7 @@
       state.pure = btn.dataset.mode === 'pure';
       document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('active', b === btn));
       renderSheet();
-      caption.textContent = '第 ' + state.number + ' 号' +
-        (state.pure ? ' · 素笺' : ' · 心相「' + state.mind.name + '」');
+      syncCaption();
     });
   });
 
@@ -251,9 +321,13 @@
     btn.addEventListener('click', () => {
       if (!state.lastPixels) return;
       state.carrier = btn.dataset.carrier;
+      if (state.carrier !== 'sheet') state.pure = true;
       syncCarrierUI();
+      syncModeUI();
       renderSheet();
-      showToast('已入' + (state.carrier === 'sheet' ? '笺' : state.carrier === 'fan' ? '团扇' : '书签'));
+      syncCaption();
+      applyShareCarrier();
+      showToast('已入' + carrierName(state.carrier));
     });
   });
 
@@ -265,7 +339,7 @@
 
   // ---------- 保存（容器 JSBridge 相册直存） ----------
   $('#saveBtn').addEventListener('click', () => {
-    saveDataUrl(paperCanvas.toDataURL('image/png'), state.number, true);
+    saveDataUrl(currentCarrierImage('image/png'), state.number, true);
   });
 
   async function saveDataUrl(dataUrl, num, inContainer) {
@@ -285,15 +359,29 @@
   // ---------- 分享文案 ----------
   function renderShare() {
     state.share = MIND.shareCopy(state.number, state.mind, state.poem);
+    applyShareCarrier();
+  }
+
+  function applyShareCarrier() {
+    if (!state.share) {
+      state.share = MIND.shareCopy(state.number, state.mind, state.poem);
+    }
+    const carrier = carrierName(state.carrier);
+    const suffix = carrier === '笺' ? '' : carrier;
+    const mindName = state.mind ? state.mind.name : '无相';
+    state.share.title = ('水影笺' + suffix + ' · 「' + mindName + '」').slice(0, 20);
+    state.share.body = state.share.body.replace(/\n成器 · [^\n]+/g, '') +
+      (suffix ? '\n成器 · ' + suffix : '');
     $('#shareTitle').textContent = state.share.title;
     $('#shareBody').textContent = state.share.body;
     $('#shareTags').textContent = state.share.tags;
   }
+
   $('#shareShuffle').addEventListener('click', renderShare);
 
   // ---------- 发笔记（容器桥接 postNote） ----------
   $('#postBtn').addEventListener('click', () => postNoteDraft(
-    paperCanvas.toDataURL('image/png'),
+    currentCarrierImage('image/png'),
     state.share && { title: state.share.title, body: state.share.body, tags: state.share.tags }
   ));
 
@@ -344,10 +432,24 @@
     async save(dataUrl, num) { await saveDataUrl(dataUrl, num, !!(window.xhs && window.xhs.miniTool)); },
     post(work) {
       const dataUrl = work.dataUrl;
+      const carrier = work.carrierLabel || carrierName(work.carrier);
       postNoteDraft(dataUrl, {
-        title: ('水影笺 · 第' + work.number + '号「' + work.mind + '」').slice(0, 20),
-        body: '流沙笺 第 ' + work.number + ' 号 · 心相「' + work.mind + '」\n' + (work.poem || ''),
-        tags: '#水影笺 #国风 #非遗',
+        title: ('水影笺' + carrier + ' · 「' + work.mind + '」').slice(0, 20),
+        body: (work.theme || '流沙笺') + ' ' + carrier + ' · 第 ' + work.number + ' 号\n' +
+          '心相「' + work.mind + '」\n' + (work.poem || '') +
+          (work.material ? '\n器面 · ' + work.material : ''),
+        tags: '#水影笺 #长物斋 #国风美学 #非遗',
+      });
+    },
+    share(dataUrl, meta) {
+      if (!dataUrl) {
+        showToast(meta && meta.empty ? '长物斋还空着 · 先拓一张收入斋展' : '分享图未生成');
+        return;
+      }
+      postNoteDraft(dataUrl, {
+        title: '水影笺 · 长物斋小展',
+        body: '长物斋小展 · 收录 ' + (meta ? meta.count || 0 : 0) + ' 件水影长物。\n每一件都从一滴墨开始，拓成笺、扇、伞、瓷。',
+        tags: '#水影笺 #长物斋 #国风美学 #非遗',
       });
     },
   });
@@ -361,10 +463,10 @@
       poem: state.poem ? state.poem.text : '',
       theme: state.palette.identity || state.palette.label,
       carrier: state.carrier,
-      carrierLabel: state.carrier === 'fan' ? '团扇' : state.carrier === 'bookmark' ? '书签' : '笺',
+      carrierLabel: carrierName(state.carrier),
       material: currentMaterial() ? currentMaterial().name : '',
       ts: Date.now(),
-      dataUrl: paperCanvas.toDataURL('image/jpeg', 0.86),
+      dataUrl: currentCarrierImage('image/jpeg', 0.9),
     }).then(store => showToast(store === 'ls' ? '已入长物斋 ✓（本机轻量存储）' : '已入长物斋 ✓'))
       .catch(err => showToast('收藏失败 · ' + (err && err.message ? err.message.slice(0, 24) : '请稍后再试')));
   });
